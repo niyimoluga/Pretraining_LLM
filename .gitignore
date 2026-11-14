@@ -1,0 +1,28 @@
+# environment and tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# data and token files
+data/
+*.bin
+*.bin.meta
+
+# training outputs, packaged models, receipts (live on Hugging Face)
+runs/
+submissions/
+logs/
+*.pt
+*.tmp
+
+# local notes that should not be public
+session/
+.env
+wandb/
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
