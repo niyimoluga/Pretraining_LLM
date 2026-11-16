@@ -211,6 +211,14 @@ gated layer the gate's shape barely matters, so I expect **≈no change** in val
 compute. That is a legitimate, honest ablation result — and it makes for a strong
 "we controlled everything" story. Keep SiLU as the baseline.
 
+Wording checkpoint for the report: the training budget (500M tokens =
+**1.09 passes** over the 457M-token training split) means each token is seen about
+twice at most — so **overfitting is not a confounder**: train and validation loss
+should stay close regardless of the gate. The expectation that *baseline vs variant*
+stay close is attributed to the gate being a small architectural change with
+identical parameter count and compute, **not** to the data repetition. Keep those
+two reasons separate in the ablation paragraph.
+
 Fallbacks if GELU is judged too trivial (decide with the user):
 - **Medium:** untie the output projection (`nn.Linear(width, vocab, bias=False)`),
   +2.1M params (+7.6%) with a documented init matched to the embedding std; expectation:

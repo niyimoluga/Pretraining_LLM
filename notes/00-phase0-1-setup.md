@@ -32,12 +32,15 @@ removed manually (`rm -rf data/a1/.a1-prepare-*`). Done twice, ~3.7 GB reclaimed
 ## Data
 
 Download (pinned revision `9624da983649aa6c90f4dbb260b2b9c87de5350c`): `data/raw/training-data.txt`,
-1.6 GB, **529,318** `<|endoftext|>` document separators.
+1.6 GB. **Document count = 541,041** (541,041 occurrences of the `<|endoftext|>` separator;
+the file is `DOC SEP DOC SEP … DOC SEP`, so it neither starts nor ends with a separator and
+`occurrences = documents`). NOTE: `grep -c` counts **lines containing** the separator, not
+occurrences — it misleadingly reported 529,318 here. Use occurrence counting.
 
 | Stage | Command | Result |
 |---|---|---|
-| split | `split-data --val-fraction 0.01 --seed 0` (45 s) | 535,601 train docs (1.59 GB) / 5,440 val docs (15.7 MB); `disjoint: true`, laptop subsets nested in their parents |
-| laptop subset | supplied defaults | 719 train docs (2.1 MB) / 21 val docs (64 KB) |
+| split | `split-data --val-fraction 0.01 --seed 0` (45 s) | `input_documents = unique = 541,041`, duplicates 0; train 535,601 / val 5,440 → **535,601 + 5,440 = 541,041 ✓**; `disjoint: true`, laptop subsets nested |
+| laptop subset | supplied defaults | 719 train docs (2.1 MB) / 21 val docs (64 KB) — 719 ⊂ 535,601, 21 ⊂ 5,440 |
 | tokenizer | `train-tokenizer --vocab-size 4096` (9 min) | 11,074 docs / 33.55 MB sample, vocab **4096**, `eot_id = 0`, sha256 `118cfb9a…` |
 | tokenize check | `tokenize "A small bird landed."` | `A | small | b | ird | land | ed | .` = 7 tokens, round-trip clean |
 | laptop encode | `prepare … --out data/a1/laptop` | 600,109 train / 17,227 val tokens |
@@ -45,8 +48,19 @@ Download (pinned revision `9624da983649aa6c90f4dbb260b2b9c87de5350c`): `data/raw
 
 Notes for the report:
 
-- mean **4.448 UTF-8 bytes per token**, so the random-model baseline for bits per byte is
-  ≈ ln(4096)/ln(2) / 4.448 ≈ **1.87**; a trained 28M model should be well below 1.
-- the 500,006,912-token budget is **1.09 passes** over the 456.97M training tokens, i.e. each
-  token is seen about once — this explains why both runs stay close together.
+- mean **4.448 UTF-8 bytes per token** (mean of the byte length of each token id over the vocab,
+  with the EOT token counting as 0 bytes, as the evaluator's `byte_lengths` table does). The
+  supplied evaluation (`infrastructure.evaluate` / `helpers/evaluate.py`) computes
+  `val_bpb = total_nats / total_bytes / ln(2)` — i.e. nats per byte **converted to bits per
+  byte** by dividing by `ln(2)`. A uniform model over 4,096 tokens has `ln(4096)=8.318 nats`
+  = `12 bits` per token; the random-model floor is therefore **≈ 12 / 4.448 ≈ 2.70 bpb**, not
+  1.87. Do **not** divide nats by bytes directly (that gives nats, not bits).
+- the 500,006,912-token budget is **1.09 passes** over the 456.97M training tokens, so each
+  token is seen about once. Consequence for the report: the model barely repeats data, so
+  **train vs validation loss stay close and overfitting is unlikely** (e.g. if the gate activation
+  change introduced fit differences, they would show globally, not as overfit val loss).
 - validation text is 15,733,430 bytes, scored 31 times per final run (~4.5M tokens each).
+- environment: the cluster guide provisions a **Python 3.12** env; this project was developed on
+  **Python 3.14.3** locally (Windows Application Control blocks uv's 3.12; torch 2.9 ships
+  cp314 wheels). No 3.14-only features are used, so the same source and tests run on both;
+  this difference should be noted in the report and re-verified on the cluster.

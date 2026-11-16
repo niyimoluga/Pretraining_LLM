@@ -22,9 +22,9 @@ uv pip install --python .venv/Scripts/python.exe -r assignment1/code/requirement
 
 ## 1. Data — done
 
-> split 535,601 / 5,440 docs (1%, seed 0, disjoint) · tokenizer 4096 vocab, `eot_id = 0` ·
+> split 535,601 / 5,440 docs (sum = 541,041 = `input_documents`; 1%, seed 0, disjoint) · tokenizer 4096 vocab, `eot_id = 0` ·
 > laptop 600,109 / 17,227 tokens · final **456,968,855** / 4,507,188 tokens
-> (500,006,912 budget = 1.09 passes) · 4.448 bytes per token → random baseline ≈ 1.87 bpb
+> (500,006,912 budget = 1.09 passes) · 4.448 bytes per token → random-model floor ≈ **2.70 bpb** ( = ln(4096)/ln2 / 4.448; `evaluate` divides nats by bytes **and** by ln2 → bits)
 
 ```bash
 python -m huggingface_hub.cli.hf download idealab-cs2/fundamentals-of-llms-training-data \
