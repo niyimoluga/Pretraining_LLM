@@ -60,7 +60,8 @@ Notes for the report:
   **train vs validation loss stay close and overfitting is unlikely** (e.g. if the gate activation
   change introduced fit differences, they would show globally, not as overfit val loss).
 - validation text is 15,733,430 bytes, scored 31 times per final run (~4.5M tokens each).
-- environment: the cluster guide provisions a **Python 3.12** env; this project was developed on
-  **Python 3.14.3** locally (Windows Application Control blocks uv's 3.12; torch 2.9 ships
-  cp314 wheels). No 3.14-only features are used, so the same source and tests run on both;
-  this difference should be noted in the report and re-verified on the cluster.
+- environment: the cluster guide provisions a **Python 3.12** env; this project was developed
+  and tested on **Python 3.14.3** locally (Windows Application Control blocks uv's 3.12;
+  torch 2.9 ships cp314 wheels). No 3.14-only features are used, but the same source and
+  tests have **not yet been run on 3.12** — they must be re-verified on the cluster before
+  claiming parity. This difference should be noted in the report.
