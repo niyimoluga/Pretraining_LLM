@@ -8,9 +8,37 @@ Assignment 1: a small decoder-only GPT (28M parameters, 4096-token BPE vocabular
 pre-trained on ~500M tokens twice — a **SiLU baseline** and a **GELU variant** —
 and compared in validation bits per byte.
 
-> Status: work in progress. Sections below are filled in as the assignment phases
-> complete. Models will be published at `lanretto/llm-assignment1` on Hugging Face
-> (link + full revision ID go here once uploaded).
+> Status: **environment, data split, tokenizer and token files are complete; the five
+> implementation TODOs, the student tests and all training runs are still pending.**
+> Detailed progress report: [`STATUS.md`](STATUS.md). Models will be published at
+> `lanretto/llm-assignment1` on Hugging Face (link + full revision ID go here once uploaded).
+
+## Current status at a glance
+
+| Phase | State |
+|---|---|
+| Environment (uv, venv, torch/CUDA, packages) | ✅ done |
+| Dataset download (pinned revision) | ✅ done — 1.6 GB, 541,041 documents |
+| Document split (1%, seed 0) | ✅ done — 535,601 train / 5,440 val |
+| 4096-token BPE tokenizer | ✅ done |
+| Laptop + final token files (`train.bin`/`val.bin`) | ✅ done |
+| `Attention.forward`, `Block.forward`, `GPT.forward` | ⬜ TODO 1–3 (stubs) |
+| `make_targets`, `train_step` | ⬜ TODO 4–5 (stubs) |
+| Three student tests + bug demonstration | ⬜ not written |
+| Laptop training run, GPU baseline + variant runs | ⬜ not run (GSC1 login blocked) |
+| Hugging Face upload, report, GitHub push | ⬜ not started |
+
+**Prepared data (do not re-run unless you want to rebuild it):**
+
+| Directory | Contents |
+|---|---|
+| `data/a1/tokenizer/` | `tokenizer.json` (vocab 4096, `eot_id` 0) + provenance |
+| `data/a1/laptop/` | `train.bin` (600,109 tokens), `val.bin` (17,227) |
+| `data/a1/final/` | `train.bin` (456,968,855 tokens), `val.bin` (4,507,188) |
+| `data/a1/splits/` | `train.txt`, `val.txt`, laptop subsets, `split.json` |
+
+> There is no `data/processed/` directory: this course stores the encoded files under
+> `data/a1/`. `data/`, `runs/` and `submissions/` are git-ignored.
 
 ## Layout
 
@@ -40,6 +68,10 @@ PLAN.md, CODE_MAP.md, CHECKLIST.md, RESUME.md   project notes
 ```
 
 ## Environment
+
+> Local development used **Python 3.14.3** because Windows Application Control blocked
+> uv-managed 3.12 on this machine; the cluster provides 3.12 and the suite is to be
+> re-verified there. Torch 2.9.0+cu129 runs on the laptop's NVIDIA T500 (4 GB).
 
 ```sh
 uv python install 3.12

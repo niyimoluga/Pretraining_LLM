@@ -1,0 +1,178 @@
+# Assignment 1 — detailed status report
+
+**Project folder:** `C:\Users\LENOVO\Downloads\llm-a1-work` (the VS Code workspace)
+**Last updated:** 2026-11-20
+**Overall:** environment + data + tokenizer **done**; model/training code **not yet
+implemented**; no training runs yet; GSC1 login **blocked** on credentials.
+
+---
+
+## 1. Quick answers to the common questions
+
+| Question | Answer |
+|---|---|
+| Is the data prepared? | **Yes.** But there is **no `data/processed/`** — this course uses `data/a1/`. |
+| Where are `train.bin` / `val.bin`? | `data/a1/laptop/` (small) and `data/a1/final/` (full). See §4. |
+| Is the tokenizer trained? | **Yes.** `data/a1/tokenizer/tokenizer.json`, vocab 4096, `eot_id = 0`. |
+| Was `laptop.json` tested? | **No.** Training cannot run yet — the 5 TODOs are still stubs. |
+| Did `batch_size` need lowering for 4 GB VRAM? | Not yet tested. Estimated safe: laptop config is ~1M params, batch 8 × ctx 128; a dummy batch on the T500 used only **36.5 MB** (`see.py`). |
+| Have any training runs happened? | **No.** `runs/` is empty. |
+| Are the tests written? | **No.** `tests/test_student.py` is still the empty template. |
+| Is anything on Hugging Face? | **No.** |
+| Is the GitHub repo pushed? | **No.** Local git only (8 commits), no remote. |
+| Can we log in to GSC1? | **No** — password rejected. See `notes/01-gsc1-ssh.md`. |
+
+---
+
+## 2. Everything done so far
+
+### 2.1 Environment (done 2026-11-14)
+- `uv` **0.13.8** at `C:\Users\LENOVO\.local\bin`.
+- `.venv` in the repo root, **Python 3.14.3** (system interpreter `C:\pythonman\python.exe`).
+  - *Deviation:* Windows Application Control blocks uv's downloaded Python 3.12
+    (`os error 4551`) and console scripts like `hf.exe`. Workaround: venv from the
+    system Python; HF CLI via `python -m huggingface_hub.cli.hf`.
+- **torch 2.9.0+cu129** — `torch.cuda.is_available() == True` on the NVIDIA **T500 (4 GB)**.
+- tokenizers 0.22.2 · huggingface_hub 1.33.0 · numpy · pytest 9.2.0 · matplotlib.
+- Supplied test suite currently: 3 fail (`NotImplementedError`, expected), 1 passes.
+- Gradient smoke test passes (`4.0`).
+
+### 2.2 Data (done 2026-11-14)
+- Downloaded pinned dataset revision `9624da983649aa6c90f4dbb260b2b9c87de5350c`
+  → `data/raw/training-data.txt` (1.6 GB, **541,041 documents**).
+- Split whole documents, `--val-fraction 0.01 --seed 0` → **535,601 train / 5,440 val**
+  (`disjoint: true`, laptop subsets nested). Sum = 541,041 = `input_documents`.
+- Trained one BPE tokenizer, vocab **4096**, on a 33.5 MB sample (11,074 docs).
+- Encoded **laptop** and **final** token files (see §4).
+- Report-ready numbers: **4.448 bytes/token**; random-model bpb floor **≈ 2.70**;
+  500,006,912-token budget = **1.09 passes** over the training split.
+
+### 2.3 Project scaffolding & git
+- Imported the assignment starter into the repo (code, configs, tests, sbatch, docs).
+- `.gitignore` excludes `.venv/`, `data/`, `runs/`, `submissions/`, `*.pt`, `logins.txt`, `session/`.
+- **8 commits**, local only, no remote. See §6.
+
+### 2.4 Security fix
+- `logins.txt` was accidentally committed; **purged from all history**, moved out of the
+  repo to `Downloads\logins.txt.keep`, and gitignored. Password should still be rotated.
+
+### 2.5 GSC1
+- SSH config block added (`Host gsc1` → `olaniyi.moluga@l1.gsc1.uni-graz.at`).
+- Login attempted and **diagnosed**: host reachable, password rejected for all plausible
+  usernames. Needs a u:account password reset and/or teaching-team provisioning.
+
+### 2.6 Notes / planning docs
+- `PLAN.md` — full phase plan, decisions, GSC blocker, commit plan.
+- `CODE_MAP.md` — what every file in `assignment1/code` is for.
+- `CHECKLIST.md` — tick-box commands with status.
+- `RESUME.md` — how to resume this pi session.
+- `notes/00-phase0-1-setup.md` — environment + data log with the corrections.
+- `notes/01-gsc1-ssh.md` — SSH diagnosis and next steps.
+
+---
+
+## 3. What is NOT done (the actual work ahead)
+
+| # | Task | Where | Status |
+|---|---|---|---|
+| 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ❌ stub |
+| 2 | `Block.forward` (TODO 2) | `assignment1/code/model.py` | ❌ stub |
+| 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ❌ stub |
+| 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ❌ stub |
+| 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
+| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | ❌ empty |
+| 7 | Laptop baseline run | `runs/laptop-baseline` | ❌ not run |
+| 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
+| 9 | HF upload + receipt | — | ❌ not started |
+| 10 | Report (≤2 pages) | `report/` | ❌ not started |
+| 11 | GitHub push | `niyimoluga/llm-assignment1` | ❌ no remote |
+
+> Note: `see.py` in the project root is a user-created VRAM probe (untracked). It ran
+> successfully on the T500 and is a useful pre-flight check for the laptop run.
+
+---
+
+## 4. Output locations (full map)
+
+### Data (`data/`, gitignored)
+```
+data/raw/training-data.txt             1.6 GB   pinned dataset download
+data/raw/source.json                   148 KB   dataset provenance
+data/a1/splits/train.txt               1.5 GB   535,601 documents
+data/a1/splits/val.txt                  16 MB   5,440 documents
+data/a1/splits/laptop-train.txt        2.1 MB   719 documents
+data/a1/splits/laptop-val.txt           65 KB   21 documents
+data/a1/splits/split.json              1.7 KB   split manifest (counts, seed, checksums)
+data/a1/tokenizer/tokenizer.json       141 KB   ← THE tokenizer (vocab 4096, eot 0)
+data/a1/tokenizer/tokenizer-meta.json  980 B    training provenance
+data/a1/laptop/train.bin               2.4 MB   600,109 tokens   (uint32)
+data/a1/laptop/val.bin                  69 KB   17,227 tokens
+data/a1/laptop/meta.json               2.7 KB   counts + checksums
+data/a1/laptop/tokenizer.json          141 KB   copy used by the run
+data/a1/final/train.bin                1.8 GB   456,968,855 tokens
+data/a1/final/val.bin                   18 MB   4,507,188 tokens
+data/a1/final/meta.json                2.7 KB   counts + checksums
+data/a1/final/tokenizer.json           141 KB   copy used by the run
+```
+
+### Code (tracked in git)
+```
+assignment1/code/model.py        ← edit (TODOs 1-3)
+assignment1/code/train.py        ← edit (TODOs 4-5)
+assignment1/code/components.py   supplied RMSNorm + rotate
+assignment1/code/tools.py        CLI dispatcher
+assignment1/code/helpers/*.py    supplied data/trainer/eval/gen/plot/submission
+assignment1/configs/laptop.json  2 layers, width 128, ctx 128, 500 steps, batch 8
+assignment1/configs/final.json   8 layers, width 512, ctx 512, 30,518 steps, batch 32
+assignment1/tests/test_interfaces.py   supplied smoke tests
+assignment1/tests/test_student.py      ← edit (your 3 tests)
+assignment1/train.sbatch / prepare.sbatch / gpu-check.sbatch   Slurm jobs
+```
+
+### Outputs (created as we go)
+```
+runs/laptop-baseline/     metrics.jsonl, best.pt, last.pt, run.json, source/
+runs/a1-baseline/         same, from the GPU baseline run
+runs/a1-variant/          same, from the GPU GELU run
+report/comparison.png     loss / val-loss / bpb / grad-norm plots
+submissions/a1/           packaged models (baseline/ + variant/)
+submissions/a1-receipt.json   HF repo link + revision
+```
+
+---
+
+## 5. Useful facts for the report
+
+- Split: val fraction **0.01**, seed **0**, 535,601 train / 5,440 val docs, disjoint.
+- Tokenizer: 4096 vocab, `eot_id = 0`, shared by every run.
+- Bytes per token: **4.448** → uniform-model bpb floor **≈ 2.70**.
+- Training budget: 30,518 steps × 32 × 512 = **500,006,912 tokens** = 1.09 passes.
+- bpb formula (from the supplied code): `nats/byte ÷ ln(2)`.
+- Ablation: **SiLU (baseline) vs GELU (`--activation gelu`)** — same params & compute.
+- Expected: very small bpb difference; overfitting is not a confounder at ~1 pass.
+
+---
+
+## 6. Git history (local, not pushed)
+
+```
+9969693 docs: record GSC1 SSH diagnosis ...
+283f825 chore: remove credentials from the repo and ignore logins.txt
+e304b8a docs: soften 3.12 parity claim ...
+4b3ba00 docs: correct bpb floor (≈2.70), document count (541,041) ...
+a9bc842 docs: correct checklist status ...
+1225b2d docs: mark setup and data phases complete ...
+1c88de1 docs: record local environment, data split, tokenizer ...
+acfdf8d chore: import assignment 1 starter ...
+```
+
+---
+
+## 7. Immediate next steps
+
+1. **Implement TODO 1** (`Attention.forward`) → commit with the causality test.
+2. TODOs 2–5 with tests, then run the supplied suite + the fixed-batch overfit check.
+3. **Run the laptop config** and confirm no OOM on the T500 (record batch size used).
+4. Write the three student tests and the bug demonstration.
+5. Resolve GSC1 login (password reset / teaching team), then run the two GPU jobs.
+6. Package + upload to Hugging Face, write the report, push to GitHub, email.
