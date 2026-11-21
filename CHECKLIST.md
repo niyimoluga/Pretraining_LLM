@@ -46,7 +46,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 ## 2. Implement (5 TODOs)
 
-- [ ] `model.py` `Attention.forward`
+- [x] `model.py` `Attention.forward` (done 2026-11-20, test T1 + bug demo)
 - [ ] `model.py` `Block.forward` (silu **and** gelu)
 - [ ] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation)
 - [ ] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`)
@@ -62,15 +62,15 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 ## 4. Tests + bug demo
 
-- [ ] T1 causal mask invariance
+- [x] T1 causal mask invariance
 - [ ] T2 next-token alignment (hard-coded pair + manual CE)
 - [ ] T3 clipping (pre-clip norm returned, update scaled) + `-100` ignored
 - [ ] bug demo: `notes/bug-demo.patch`, `notes/bug-demo-fail.txt`, `notes/bug-demo-pass.txt`, `notes/TESTS.md`
 
 ## 5. GSC final runs (each must end at step 30518 / 500006912 tokens)
 
-Blocked: SSH login rejected — see `PLAN.md` §7. While blocked, everything up to and
-including both laptop runs can proceed locally.
+SSH login **works** (username `23moluga`, passwordless key) — see `notes/01-gsc1-ssh.md`.
+Jobs still to be launched at the full-run stage.
 
 ```bash
 # local

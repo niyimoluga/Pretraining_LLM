@@ -1,0 +1,13 @@
+diff --git a/assignment1/code/model.py b/assignment1/code/model.py
+index ffccb00..606f61e 100644
+--- a/assignment1/code/model.py
++++ b/assignment1/code/model.py
+@@ -77,7 +77,7 @@ class Attention(nn.Module):
+         # 5. Causal mask: query position i may only attend to key positions j <= i.
+         #    tril(ones) is exactly the allowed set; everything above the diagonal
+         #    becomes -inf so softmax gives it zero weight.
+-        mask = torch.tril(torch.ones(T, T, dtype=torch.bool, device=x.device))
++        mask = torch.triu(torch.ones(T, T, dtype=torch.bool, device=x.device))  # BUG: wrong mask direction
+         scores = scores.masked_fill(~mask, float("-inf"))
+ 
+         # 6. Softmax over the last (key) axis. Do it in float32 for numerical

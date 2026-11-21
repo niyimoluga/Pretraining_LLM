@@ -20,7 +20,7 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | Are the tests written? | **No.** `tests/test_student.py` is still the empty template. |
 | Is anything on Hugging Face? | **No.** |
 | Is the GitHub repo pushed? | **No.** Local git only (8 commits), no remote. |
-| Can we log in to GSC1? | **No** — password rejected. See `notes/01-gsc1-ssh.md`. |
+| Can we log in to GSC1? | **Yes** — resolved: username is `23moluga`, passwordless via SSH key. See `notes/01-gsc1-ssh.md`. |
 
 ---
 
@@ -56,10 +56,18 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 - `logins.txt` was accidentally committed; **purged from all history**, moved out of the
   repo to `Downloads\logins.txt.keep`, and gitignored. Password should still be rotated.
 
-### 2.5 GSC1
-- SSH config block added (`Host gsc1` → `olaniyi.moluga@l1.gsc1.uni-graz.at`).
-- Login attempted and **diagnosed**: host reachable, password rejected for all plausible
-  usernames. Needs a u:account password reset and/or teaching-team provisioning.
+### 2.5 GSC1 (resolved 2026-11-20)
+- Username was the problem: GSC1 wants the UNIGRAZonline username **`23moluga`**.
+- `Host gsc1` in `~/.ssh/config` uses `User 23moluga`; ed25519 key installed →
+  **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
+- Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
+
+### 2.6 TODO 1 implemented (2026-11-20)
+- `Attention.forward` complete in `assignment1/code/model.py` (causal MHA + RoPE).
+- Verified against a naive reference loop (max diff 6e-08); causality, softmax and
+  masking properties checked. Test **T1** (`test_attention_is_causal`) passes, and the
+  injected `tril→triu` bug is demonstrated to fail it. Details in
+  `notes/attention-trace.md` and `notes/TESTS.md`.
 
 ### 2.6 Notes / planning docs
 - `PLAN.md` — full phase plan, decisions, GSC blocker, commit plan.
@@ -75,12 +83,12 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 
 | # | Task | Where | Status |
 |---|---|---|---|
-| 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ❌ stub |
+| 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ✅ done + test T1 |
 | 2 | `Block.forward` (TODO 2) | `assignment1/code/model.py` | ❌ stub |
 | 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ❌ stub |
 | 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ❌ stub |
 | 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
-| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | ❌ empty |
+| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | 🟡 T1 done, T2/T3 pending |
 | 7 | Laptop baseline run | `runs/laptop-baseline` | ❌ not run |
 | 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
 | 9 | HF upload + receipt | — | ❌ not started |
@@ -170,7 +178,7 @@ acfdf8d chore: import assignment 1 starter ...
 
 ## 7. Immediate next steps
 
-1. **Implement TODO 1** (`Attention.forward`) → commit with the causality test.
+1. ~~Implement TODO 1 (`Attention.forward`) → commit with the causality test.~~ ✅
 2. TODOs 2–5 with tests, then run the supplied suite + the fixed-batch overfit check.
 3. **Run the laptop config** and confirm no OOM on the T500 (record batch size used).
 4. Write the three student tests and the bug demonstration.

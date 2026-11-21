@@ -1,0 +1,49 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\LENOVO\Downloads\llm-a1-work\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\LENOVO\Downloads\llm-a1-work
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+assignment1/tests/test_student.py::test_attention_is_causal FAILED       [100%]
+
+================================== FAILURES ===================================
+__________________________ test_attention_is_causal ___________________________
+
+    def test_attention_is_causal():
+        """T1: changing tokens after position t must not change outputs at positions <= t.
+    
+        Causal attention lets position i read only positions j <= i. So if we replace
+        everything from position 4 onward with different values, the outputs at
+        positions 0..3 must be bit-for-bit identical, while positions 4..7 are free
+        to change.
+    
+        Catches: a removed or inverted mask (tril vs triu), or masking the wrong axis.
+        Would miss: wrong scaling, wrong head merging, or a softmax over the wrong axis
+        (those keep causality but change values).
+        """
+        config = Config(vocab_size=32, context=8, layers=1, heads=2, width=16)
+        attn = Attention(config)
+        attn.eval()
+        cos, sin = _rope_tables(config.context, config.width // config.heads)
+    
+        torch.manual_seed(0)
+        x = torch.randn(2, config.context, config.width)
+        changed = x.clone()
+        changed[:, 4:] = torch.randn_like(changed[:, 4:])  # perturb the "future"
+    
+        with torch.no_grad():
+            before = attn(x, cos, sin)
+            after = attn(changed, cos, sin)
+    
+        assert before.shape == (2, config.context, config.width)
+        # Positions 0..3 cannot see changes at 4..7 -> identical.
+>       assert torch.allclose(before[:, :4], after[:, :4], atol=1e-6)
+E       assert False
+E        +  where False = <built-in method allclose of type object at 0x00007FF80EBF58E0>(tensor([[[-0.0552, -0.0124,  0.1759,  0.1439,  0.0127,  0.2121, -0.0339,\n          -0.0992,  0.0329,  0.2259,  0.1390, -0.1172,  0.0573, -0.1878,\n           0.2964, -0.2105],\n         [ 0.0963, -0.0067,  0.2206,  0.0609,  0.1279,  0.2032, -0.0332,\n          -0.1400, -0.0269,  0.2163,  0.1136, -0.0900, -0.0411, -0.1249,\n           0.2694, -0.1558],\n         [-0.0049, -0.0716,  0.2146, -0.0086,  0.1642,  0.0956, -0.1058,\n          -0.1106,  0.0242,  0.1639,  0.0559,  0.0641,  0.0569, -0.1202,\n           0.1214, -0.0724],\n         [ 0.2814, -0.0139,  0.2028,  0.2796,  0.0393,  0.2572, -0.0208,\n          -0.0729,  0.0298,  0.0340,  0.0972,  0.0011,  0.1035, -0.0785,\n           0.2048, -0.1161]],\n\n        [[-0.1028,  0.0507, -0.0235,  0.0563, -0.0721, -0.0410, -0.0658,\n           0.0678,  0.0402, -0.0923,  0.0839, -0.0210,  0.0429, -0.0750,\n           0.0988, -0.1040],\n         [-0.1115,  0.0454, -0.0245,  0.1027, -0.0576,  0.0092, -0.0778,\n           0.0461,  0.0866, -0.0343,  0.0869, -0.0319,  0.0611, -0.1284,\n           0.1156, -0.1559],\n         [-0.0706,  0.0168, -0.0547,  0.1038,  0.0287,  0.0629, -0.0524,\n           0.0830,  0.0948, -0.0218,  0.0311,  0.0135,  0.0362, -0.0866,\n           0.0753, -0.1186],\n         [-0.0524, -0.0457, -0.0300,  0.0853,  0.0943,  0.0870,  0.0023,\n           0.0343,  0.0137,  0.0348, -0.0257,  0.1049, -0.0198, -0.0024,\n           0.0900, -0.0383]]]), tensor([[[-9.8839e-02,  6.1600e-02,  6.6097e-03,  1.5200e-01, -2.9048e-02,\n           1.2423e-01, -5.9787e-02, -9.5260e-02, -1.1268e-02,  1.6692e-01,\n           8.1283e-02, -3.4933e-02,  1.0509e-01, -2.2385e-01,  1.9616e-01,\n          -1.5329e-01],\n         [-2.6262e-02, -1.3092e-02,  6.0482e-02, -3.2879e-03,  1.3070e-01,\n           8.1444e-02, -3.9463e-02, -5.4781e-02, -2.8597e-02,  1.6280e-01,\n           2.6593e-02, -2.4744e-02, -1.4742e-02, -6.5677e-02,  1.5948e-01,\n          -7.5110e-02],\n         [-1.1678e-01, -7.0183e-02,  1.6106e-02, -2.2394e-02,  1.6211e-01,\n           1.6203e-02, -1.1182e-01,  3.7996e-03, -8.3298e-04,  1.2172e-01,\n          -7.1787e-02,  8.1343e-02,  1.0736e-01, -6.3585e-02, -4.5843e-03,\n           1.2014e-02],\n         [-2.0653e-02, -3.1047e-02, -1.6593e-01,  1.6334e-01,  4.1150e-02,\n           5.4843e-02,  5.1397e-02,  1.1407e-01,  1.9025e-02, -9.8723e-02,\n           4.5544e-02,  1.0438e-01,  1.2166e-01, -4.5431e-02,  1.1318e-01,\n           6.4657e-02]],\n\n        [[-7.4411e-03,  1.8822e-01, -1.4900e-01, -9.7367e-02, -2.5183e-01,\n          -2.3223e-01, -4.2951e-02,  2.3913e-01, -3.4983e-04, -4.2194e-01,\n           2.8891e-01, -1.5803e-01, -1.1504e-01, -5.5249e-02,  1.2393e-01,\n           8.8895e-03],\n         [-1.4158e-02,  1.4971e-01, -1.8731e-01, -3.6671e-02, -2.3097e-01,\n          -2.8606e-01, -9.6169e-02,  2.4881e-01,  7.1437e-02, -4.6839e-01,\n           2.6625e-01, -1.7366e-01, -9.2319e-02, -7.0753e-02,  1.2383e-01,\n          -3.8268e-02],\n         [ 4.9400e-02,  1.4282e-01, -2.4683e-01, -5.7616e-02, -2.0258e-01,\n          -3.1591e-01, -6.2009e-02,  2.8616e-01,  5.5918e-02, -5.1724e-01,\n           2.4259e-01, -1.7559e-01, -1.6132e-01,  6.7629e-03,  1.1172e-01,\n           1.1473e-02],\n         [ 6.7438e-02,  2.3935e-01, -3.3089e-01, -1.8880e-01, -3.0662e-01,\n          -3.2129e-01,  4.3997e-02,  3.4947e-01, -4.9521e-02, -5.8061e-01,\n           3.7637e-01, -1.4871e-01, -2.8473e-01,  2.0268e-02,  1.6441e-01,\n           1.5640e-01]]]), atol=1e-06)
+E        +    where <built-in method allclose of type object at 0x00007FF80EBF58E0> = torch.allclose
+
+assignment1\tests\test_student.py:55: AssertionError
+=========================== short test summary info ===========================
+FAILED assignment1/tests/test_student.py::test_attention_is_causal - assert F...
+============================== 1 failed in 2.16s ==============================

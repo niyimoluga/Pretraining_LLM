@@ -47,7 +47,50 @@ class Attention(nn.Module):
         cos/sin contain positions up to the configured maximum context.
         See assignment.md for exact shapes, scaling and mask direction.
         """
-        raise NotImplementedError("TODO 1: Attention.forward")
+        B, T, C = x.shape
+        H = self.heads
+        D = C // H  # width of one head; C is guaranteed divisible by H by Config
+
+        # 1. One projection gives Q, K and V stacked on the last axis: [B, T, 3C].
+        #    chunk(3) returns them in that order (q, k, v), each [B, T, C].
+        q, k, v = self.qkv(x).chunk(3, dim=-1)
+
+        # 2. Split the C channels into H heads and move the head axis forward:
+        #    [B, T, C] -> [B, T, H, D] -> [B, H, T, D].
+        #    Contiguity of the view is preserved because T and H*D partition the
+        #    same memory (no transpose before the view).
+        q = q.view(B, T, H, D).transpose(1, 2)
+        k = k.view(B, T, H, D).transpose(1, 2)
+        v = v.view(B, T, H, D).transpose(1, 2)
+
+        # 3. Rotary positions on Q and K only, using the first T rows of the
+        #    tables. rotate() rotates adjacent (even, odd) pairs, so cos/sin of
+        #    shape [T, D/2] broadcast across batch and head axes.
+        cos_t, sin_t = cos[:T], sin[:T]
+        q = rotate(q, cos_t, sin_t)
+        k = rotate(k, cos_t, sin_t)
+
+        # 4. Scaled dot-product scores: [B, H, T, D] @ [B, H, D, T] -> [B, H, T, T].
+        #    Scale by sqrt(D), the per-head dimension (not sqrt(C)).
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(D)
+
+        # 5. Causal mask: query position i may only attend to key positions j <= i.
+        #    tril(ones) is exactly the allowed set; everything above the diagonal
+        #    becomes -inf so softmax gives it zero weight.
+        mask = torch.tril(torch.ones(T, T, dtype=torch.bool, device=x.device))
+        scores = scores.masked_fill(~mask, float("-inf"))
+
+        # 6. Softmax over the last (key) axis. Do it in float32 for numerical
+        #    stability, then cast back to the values' dtype (supports bf16).
+        weights = scores.float().softmax(dim=-1).to(v.dtype)
+
+        # 7. Weighted sum of values -> [B, H, T, D].
+        y = weights @ v
+
+        # 8. Merge heads back into the model width: [B, H, T, D] -> [B, T, H, D]
+        #    -> [B, T, C], then mix channels with the output projection.
+        y = y.transpose(1, 2).reshape(B, T, C)
+        return self.out(y)
 
 
 class Block(nn.Module):
