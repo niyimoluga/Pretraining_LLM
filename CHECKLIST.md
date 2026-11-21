@@ -47,7 +47,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 ## 2. Implement (5 TODOs)
 
 - [x] `model.py` `Attention.forward` (done 2026-11-20, test T1 + bug demo)
-- [ ] `model.py` `Block.forward` (silu **and** gelu)
+- [x] `model.py` `Block.forward` (silu **and** gelu) — done 2026-11-20
 - [ ] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation)
 - [ ] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`)
 - [ ] `train.py` `train_step` (zero_grad → fwd → backward → clip 1.0 → step; return pre-clip norm)
@@ -103,5 +103,5 @@ squeue -u $USER; tail -f logs/llm-student-*.out
 
 | Model | Vocab | Params | Trained tokens | Best val bpb | Runtime | Device |
 |---|---|---|---|---|---|---|
-| baseline (SiLU) | 4096 | 28.0M (verify) | 500,006,912 | | | RTX 2080 Ti, fp32 |
-| variant (GELU) | 4096 | 28.0M (verify) | 500,006,912 | | | RTX 2080 Ti, fp32 |
+| baseline (SiLU) | 4096 | 27,795,968 | 500,006,912 | | | RTX 2080 Ti, fp32 |
+| variant (GELU) | 4096 | 27,795,968 | 500,006,912 | | | RTX 2080 Ti, fp32 |

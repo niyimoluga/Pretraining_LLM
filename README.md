@@ -22,7 +22,9 @@ and compared in validation bits per byte.
 | Document split (1%, seed 0) | ✅ done — 535,601 train / 5,440 val |
 | 4096-token BPE tokenizer | ✅ done |
 | Laptop + final token files (`train.bin`/`val.bin`) | ✅ done |
-| `Attention.forward`, `Block.forward`, `GPT.forward` | ⬜ TODO 1–3 (stubs) |
+| `Attention.forward` | ✅ TODO 1 (+ test T1, bug demo) |
+| `Block.forward` (SiLU + GELU) | ✅ TODO 2 |
+| `GPT.forward` | ⬜ TODO 3 (stub) |
 | `make_targets`, `train_step` | ⬜ TODO 4–5 (stubs) |
 | Three student tests + bug demonstration | ⬜ not written |
 | Laptop training run, GPU baseline + variant runs | ⬜ not run (GSC1 login blocked) |

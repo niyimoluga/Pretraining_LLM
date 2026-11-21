@@ -111,7 +111,21 @@ class Block(nn.Module):
         Use self.activation to select silu (baseline) or gelu (easy variant).
         See assignment.md for the gated feed-forward equation.
         """
-        raise NotImplementedError("TODO 2: Block.forward")
+        # Pre-norm attention sublayer with a residual connection:
+        #     x = x + attention(attn_norm(x))
+        x = x + self.attn(self.attn_norm(x), cos, sin)
+
+        # Pre-norm gated feed-forward sublayer (SwiGLU when activation is silu):
+        #     h = ffn_norm(x)
+        #     x = x + down(activation(gate(h)) * up(h))
+        # Both gate and up read the same normalized input; the element-wise
+        # product is the gate that decides how much of each up-projection unit
+        # passes. The activation is the only difference between the baseline
+        # (SiLU) and the variant (GELU), selected at construction from Config.
+        h = self.ffn_norm(x)
+        activation = F.silu if self.activation == "silu" else F.gelu
+        x = x + self.down(activation(self.gate(h)) * self.up(h))
+        return x
 
 
 class GPT(nn.Module):

@@ -62,6 +62,14 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.7 TODO 2 implemented (2026-11-20)
+- `Block.forward` complete: pre-norm attention + gated FFN (SwiGLU/SwiGELU) with both
+  residual connections. Activation selected from `Config.activation`, so `--activation
+  gelu` now works for the variant.
+- Verified: residual identity, exact equation match for both activations, SiLU≠GELU,
+  identical parameter count. Model sizes confirmed: laptop **950,912**, final
+  **27,795,968** params. Details in `notes/block-trace.md`.
+
 ### 2.6 TODO 1 implemented (2026-11-20)
 - `Attention.forward` complete in `assignment1/code/model.py` (causal MHA + RoPE).
 - Verified against a naive reference loop (max diff 6e-08); causality, softmax and
@@ -84,7 +92,7 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | # | Task | Where | Status |
 |---|---|---|---|
 | 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ✅ done + test T1 |
-| 2 | `Block.forward` (TODO 2) | `assignment1/code/model.py` | ❌ stub |
+| 2 | `Block.forward` (TODO 2, SiLU+GELU) | `assignment1/code/model.py` | ✅ done (verified) |
 | 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ❌ stub |
 | 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ❌ stub |
 | 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
