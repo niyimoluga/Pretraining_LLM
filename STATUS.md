@@ -62,6 +62,15 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.8 TODO 3 implemented (2026-11-20)
+- `GPT.forward` complete: input validation, embedding → blocks → final RMSNorm, tied
+  unembedding (`x @ embedding.weight.T`), and float32 cross-entropy with
+  `ignore_index=-100`; returns `(logits, loss_or_None)`.
+- Verified: logits shape, manual-CE match, tied projection exactly, `-100` masking,
+  **padding invariance** (the evaluator's protocol), gradient flow to the tied embedding,
+  and rejection of 1-D / `T>context` / `T=0` inputs. Details in `notes/gpt-forward-trace.md`.
+- Supplied suite now: **3 passed, 2 failed** (the two failures are TODOs 4–5).
+
 ### 2.7 TODO 2 implemented (2026-11-20)
 - `Block.forward` complete: pre-norm attention + gated FFN (SwiGLU/SwiGELU) with both
   residual connections. Activation selected from `Config.activation`, so `--activation
@@ -93,7 +102,7 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 |---|---|---|---|
 | 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ✅ done + test T1 |
 | 2 | `Block.forward` (TODO 2, SiLU+GELU) | `assignment1/code/model.py` | ✅ done (verified) |
-| 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ❌ stub |
+| 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ✅ done (verified) |
 | 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ❌ stub |
 | 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
 | 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | 🟡 T1 done, T2/T3 pending |

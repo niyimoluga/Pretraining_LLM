@@ -48,13 +48,13 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 - [x] `model.py` `Attention.forward` (done 2026-11-20, test T1 + bug demo)
 - [x] `model.py` `Block.forward` (silu **and** gelu) — done 2026-11-20
-- [ ] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation)
+- [x] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation) — done 2026-11-20
 - [ ] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`)
 - [ ] `train.py` `train_step` (zero_grad → fwd → backward → clip 1.0 → step; return pre-clip norm)
 
 ## 3. Verify
 
-- [ ] `python -m pytest assignment1/tests -q` → 3 supplied tests pass
+- [ ] `python -m pytest assignment1/tests -q` → 3 supplied tests pass (currently 2 pending TODOs 4–5)
 - [ ] overfit fixed batch (1 layer/w16/2 heads/ctx8, 100 steps) → loss drops
 - [ ] laptop run: `python assignment1/code/train.py --config assignment1/configs/laptop.json --data data/a1/laptop --out runs/laptop-baseline --device cpu`
 - [ ] generate text from `runs/laptop-baseline/best.pt`

@@ -157,7 +157,36 @@ class GPT(nn.Module):
         Use the blocks, final RMSNorm and tied embedding/output weights.
         The caller already shifts the targets; do not shift them again.
         """
-        raise NotImplementedError("TODO 3: GPT.forward")
+        # Reject malformed inputs early. The model only supports [B, T] integer
+        # sequences whose length fits the position tables (1 <= T <= context).
+        if ids.ndim != 2:
+            raise ValueError(f"ids must be two-dimensional [B, T], got shape {tuple(ids.shape)}")
+        T = ids.shape[1]
+        if not 1 <= T <= self.config.context:
+            raise ValueError(f"sequence length must satisfy 1 <= T <= {self.config.context}, got {T}")
+
+        # Token embeddings -> transformer blocks -> final normalization.
+        # cos/sin hold positions up to the maximum context; the blocks slice [:, :T].
+        x = self.embedding(ids)                       # [B, T, C]
+        for block in self.blocks:
+            x = block(x, self.cos, self.sin)
+        x = self.norm(x)                              # [B, T, C]
+
+        # Tied output projection: reuse the embedding matrix as the unembedding.
+        # embedding.weight is [vocab, C], so x @ weight.T gives [B, T, vocab].
+        logits = x @ self.embedding.weight.T          # [B, T, vocab_size]
+
+        loss = None
+        if targets is not None:
+            # Targets are already shifted by the caller. Compute the mean
+            # cross-entropy from float32 logits, ignoring targets equal to -100
+            # (padding and other unscored positions).
+            loss = F.cross_entropy(
+                logits.float().view(-1, logits.size(-1)),
+                targets.view(-1),
+                ignore_index=-100,
+            )
+        return logits, loss
 
     @torch.no_grad()
     def generate(self, ids, count, temperature=0.8, top_k=40, stop=None):

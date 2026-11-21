@@ -24,9 +24,9 @@ and compared in validation bits per byte.
 | Laptop + final token files (`train.bin`/`val.bin`) | ✅ done |
 | `Attention.forward` | ✅ TODO 1 (+ test T1, bug demo) |
 | `Block.forward` (SiLU + GELU) | ✅ TODO 2 |
-| `GPT.forward` | ⬜ TODO 3 (stub) |
+| `GPT.forward` (tied logits, `-100` ignore, validation) | ✅ TODO 3 |
 | `make_targets`, `train_step` | ⬜ TODO 4–5 (stubs) |
-| Three student tests + bug demonstration | ⬜ not written |
+| Three student tests + bug demonstration | 🟡 T1 done (with bug demo); T2/T3 pending |
 | Laptop training run, GPU baseline + variant runs | ⬜ not run (GSC1 login blocked) |
 | Hugging Face upload, report, GitHub push | ⬜ not started |
 
