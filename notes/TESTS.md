@@ -74,17 +74,21 @@ order inside each row. All of these are shape- and dtype-correct, so the supplie
 
 ---
 
-## T3 — clipping and ignored targets (to be added with TODO 5)
+## T3 — `test_train_step_clips_gradients_and_clears_grads` (implemented)
+plus `test_train_step_ignores_masked_targets`
 
-**Checks.** (a) For a loss large enough that the gradient norm exceeds 1, the returned
-`grad_norm` is the norm **before** clipping (`> 1`), and the applied update equals
-`lr * grad / grad_norm` applied to a cloned copy. (b) Appending `-100` to targets does
-not change the loss.
+**Checks.** With a toy model whose gradient norm is exactly 100, `train_step` returns the
+**pre-clip** norm (100) and applies an SGD update of `-lr` (the clipped unit direction),
+not `-lr*100`. With a gradient norm of 0.001 (< 1), no clipping occurs and two identical
+steps make the same parameter change — proving old gradients are cleared. A second test
+checks the returned loss equals a manual `F.cross_entropy(..., ignore_index=-100)` on a
+`-100`-padded batch.
 
-**Expected result.** Pre-clip norm returned verbatim; the update direction is the
-raw gradient scaled by `1/norm`; `-100` positions contribute nothing.
+**Why the expected results are what they are.** `clip_grad_norm_` rescales by `1/norm`
+only when `norm > 1`; because the second regime has norm 0.001, the step is proportional
+to the gradient, so an uncleared (accumulated) gradient would double the second delta.
 
-**Bug it catches.** Returning the post-clip norm, forgetting `clip_grad_norm_`, not
-clearing old gradients, or dropping `ignore_index=-100`.
+**Bug it catches.** Returning the post-clip norm, forgetting to clip, clipping after the
+optimizer step, never clearing gradients (accumulation), or dropping `ignore_index`.
 
-**Would miss.** Attention/block wiring.
+**Would miss.** Attention masking (T1) and target alignment (T2).

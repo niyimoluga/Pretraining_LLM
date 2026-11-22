@@ -180,10 +180,12 @@ class GPT(nn.Module):
         if targets is not None:
             # Targets are already shifted by the caller. Compute the mean
             # cross-entropy from float32 logits, ignoring targets equal to -100
-            # (padding and other unscored positions).
+            # (padding and other unscored positions). Use reshape (not view):
+            # make_targets returns a non-contiguous slice windows[:, 1:], and
+            # view(-1) rejects non-contiguous input while reshape handles it.
             loss = F.cross_entropy(
-                logits.float().view(-1, logits.size(-1)),
-                targets.view(-1),
+                logits.float().reshape(-1, logits.size(-1)),
+                targets.reshape(-1),
                 ignore_index=-100,
             )
         return logits, loss

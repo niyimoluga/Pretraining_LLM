@@ -8,12 +8,15 @@ Run from the project root:
 """
 from pathlib import Path
 import sys
+from contextlib import nullcontext
 
+import pytest
 import torch
+import torch.nn.functional as F
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
-from model import Attention, Config
-from train import make_targets
+from model import Attention, Config, GPT
+from train import make_targets, train_step
 
 
 def _rope_tables(context, head_dim):
@@ -90,3 +93,80 @@ def test_make_targets_predicts_next_token():
     assert inputs.shape == targets.shape == (2, 3)
     assert inputs.dtype == targets.dtype == windows.dtype
     assert inputs.device == targets.device == windows.device
+
+
+class _ToyLM(torch.nn.Module):
+    """Minimal model exposing the GPT interface with a controllable gradient.
+
+    forward returns a loss of ``w * scale`` so the gradient with respect to ``w``
+    is exactly ``scale`` and its norm is easy to predict.
+    """
+
+    def __init__(self, scale):
+        super().__init__()
+        self.scale = scale
+        self.w = torch.nn.Parameter(torch.zeros(()))
+
+    def forward(self, ids, targets=None):
+        return ids, self.w * self.scale
+
+
+def test_train_step_clips_gradients_and_clears_grads():
+    """T3: clipping at norm 1.0, the PRE-clip norm is returned, and grads are cleared.
+
+    Catches: returning the post-clip norm, skipping clip_grad_norm_, clipping after
+    the optimizer step, or never zeroing gradients between updates.
+    Would miss: wrong attention/block wiring, or wrong target alignment (T1/T2).
+
+    Two regimes pin the contract down exactly:
+    (a) gradient norm 100 >> 1: clipping must turn the step into -lr * (unit direction);
+    (b) gradient norm 0.001 < 1: no clipping, and two identical steps must make the
+        same change (proving old gradients are cleared).
+    """
+    x = torch.zeros(1, 4, dtype=torch.long)
+    y = torch.zeros(1, 4, dtype=torch.long)
+
+    # (a) clipping engages: grad norm is 100, so the update magnitude is lr, not lr*100.
+    big = _ToyLM(scale=100.0)
+    opt_big = torch.optim.SGD(big.parameters(), lr=0.1)
+    loss, grad_norm = train_step(big, opt_big, x, y, nullcontext())
+    assert isinstance(loss, float) and isinstance(grad_norm, float)
+    assert grad_norm == pytest.approx(100.0)          # norm BEFORE clipping is returned
+    assert big.w.item() == pytest.approx(-0.1)        # -lr * clipped(unit) direction
+
+    # (b) clipping does not engage, and gradient clearing is observable:
+    #     with a stale gradient, the second step would move twice as far.
+    small = _ToyLM(scale=0.001)
+    opt_small = torch.optim.SGD(small.parameters(), lr=1.0)
+    _, norm1 = train_step(small, opt_small, x, y, nullcontext())
+    first_delta = small.w.item()
+    _, norm2 = train_step(small, opt_small, x, y, nullcontext())
+    second_delta = small.w.item() - first_delta
+    assert norm1 == pytest.approx(0.001) and norm2 == pytest.approx(0.001)
+    assert second_delta == pytest.approx(first_delta)  # grads were cleared, not summed
+
+
+def test_train_step_ignores_masked_targets():
+    """T3 (continued): the loss returned by train_step ignores target == -100.
+
+    Catches: a missing/incorrect ignore_index, or dropping masking before the loss.
+    Would miss: masking in attention (T1) and clipping (previous test).
+    """
+    cfg = Config(vocab_size=32, context=8, layers=1, heads=2, width=16)
+    torch.manual_seed(0)
+    reference = GPT(cfg)
+    trained = GPT(cfg)
+    trained.load_state_dict(reference.state_dict())   # same starting weights
+
+    ids = torch.randint(0, 32, (1, 8))
+    targets = ids.clone()
+    targets[:, 4:] = -100                             # only the first four are scored
+
+    with torch.no_grad():
+        logits, _ = reference(ids)
+        manual = F.cross_entropy(logits.float().view(-1, cfg.vocab_size),
+                                 targets.view(-1), ignore_index=-100)
+
+    optimizer = torch.optim.SGD(trained.parameters(), lr=0.0)  # no parameter movement
+    loss, _ = train_step(trained, optimizer, ids, targets, nullcontext())
+    assert loss == pytest.approx(manual.item(), rel=1e-6)

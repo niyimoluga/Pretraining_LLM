@@ -62,6 +62,18 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.10 TODO 5 implemented + tests T3 + fixed-batch check (2026-11-20)
+- `train_step`: train mode → zero_grad → forward in `precision_context` → finite-loss
+  check → backward → `clip_grad_norm_(..., 1.0)` returning the **pre-clip** norm →
+  finite check → `optimizer.step()` → `(float(loss), float(grad_norm))`.
+- Tests **T3**: clipping at norm 1 returns the pre-clip norm and applies `-lr` unit
+  step; non-clipping regime proves gradients are cleared; `-100` loss matches manual CE.
+- Required **fixed-batch check**: loss **3.49 → 0.186** over 100 updates
+  (`notes/overfit-check.txt`).
+- **Bug found by the supplied test:** `GPT.forward` used `targets.view(-1)`, which fails on
+  the non-contiguous slice from `make_targets`. Fixed to `.reshape(-1)`. Full suite now
+  **8 passed**. Details in `notes/train-step-trace.md`.
+
 ### 2.9 TODO 4 implemented + test T2 (2026-11-20)
 - `make_targets` returns `windows[:, :-1]` and `windows[:, 1:]` as slice views, so
   dtype/device/order are preserved and position i predicts window[i+1].
@@ -111,9 +123,9 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | 2 | `Block.forward` (TODO 2, SiLU+GELU) | `assignment1/code/model.py` | ✅ done (verified) |
 | 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ✅ done (verified) |
 | 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ✅ done + test T2 |
-| 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
-| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | 🟡 T1–T2 done, T3 pending |
-| 7 | Laptop baseline run | `runs/laptop-baseline` | ❌ not run |
+| 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ✅ done + tests T3 |
+| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | ✅ T1–T3 + bug demo |
+| 7 | Laptop baseline run | `runs/laptop-baseline` | 🟡 next step |
 | 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
 | 9 | HF upload + receipt | — | ❌ not started |
 | 10 | Report (≤2 pages) | `report/` | ❌ not started |

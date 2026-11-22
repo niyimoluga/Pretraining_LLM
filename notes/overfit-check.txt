@@ -1,0 +1,12 @@
+inputs  (2, 8): [[1, 2, 3, 4, 5, 6, 7, 8], [9, 8, 7, 6, 5, 4, 3, 2]]
+targets (2, 8): [[2, 3, 4, 5, 6, 7, 8, 9], [8, 7, 6, 5, 4, 3, 2, 1]]
+
+step   1  loss 3.49079  grad_norm(pre-clip) 1.869
+step  10  loss 2.91587  grad_norm(pre-clip) 1.035
+step  25  loss 2.16788  grad_norm(pre-clip) 1.003
+step  50  loss 1.21253  grad_norm(pre-clip) 0.858
+step  75  loss 0.51888  grad_norm(pre-clip) 0.671
+step 100  loss 0.18618  grad_norm(pre-clip) 0.314
+
+first loss 3.49079 -> last loss 0.18618  (drop 3.305)
+loss clearly decreased: True

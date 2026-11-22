@@ -50,12 +50,12 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 - [x] `model.py` `Block.forward` (silu **and** gelu) — done 2026-11-20
 - [x] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation) — done 2026-11-20
 - [x] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`) — done 2026-11-20, test T2
-- [ ] `train.py` `train_step` (zero_grad → fwd → backward → clip 1.0 → step; return pre-clip norm)
+- [x] `train.py` `train_step` (zero_grad → fwd → backward → clip 1.0 → step; return pre-clip norm) — done 2026-11-20, tests T3
 
 ## 3. Verify
 
-- [ ] `python -m pytest assignment1/tests -q` → 3 supplied tests pass (currently 2 pending TODOs 4–5)
-- [ ] overfit fixed batch (1 layer/w16/2 heads/ctx8, 100 steps) → loss drops
+- [x] `python -m pytest assignment1/tests -q` → 8 passed (3 supplied + 4 student + 1 bpe)
+- [x] overfit fixed batch (1 layer/w16/2 heads/ctx8, 100 steps) → loss 3.49 → 0.186 (notes/overfit-check.txt)
 - [ ] laptop run: `python assignment1/code/train.py --config assignment1/configs/laptop.json --data data/a1/laptop --out runs/laptop-baseline --device cpu`
 - [ ] generate text from `runs/laptop-baseline/best.pt`
 - [ ] toy AdamW single-parameter trace saved in `notes/adamw-trace.txt`
@@ -64,7 +64,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 - [x] T1 causal mask invariance
 - [x] T2 next-token alignment (hard-coded pair + shift relation)
-- [ ] T3 clipping (pre-clip norm returned, update scaled) + `-100` ignored
+- [x] T3 clipping (pre-clip norm returned, update scaled) + `-100` ignored
 - [ ] bug demo: `notes/bug-demo.patch`, `notes/bug-demo-fail.txt`, `notes/bug-demo-pass.txt`, `notes/TESTS.md`
 
 ## 5. GSC final runs (each must end at step 30518 / 500006912 tokens)

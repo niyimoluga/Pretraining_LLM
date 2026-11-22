@@ -28,7 +28,36 @@ def train_step(model, optimizer, x, y, precision_context):
     the total norm before clipping. The supplied caller sets the learning rate.
     precision_context is a context manager, including on CPU.
     """
-    raise NotImplementedError("TODO 5: train_step")
+    # Training mode and cleared gradients: do not accumulate onto a previous
+    # update, and let any mode-dependent layer behave as during training.
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+
+    # Forward pass under the caller's precision context (no-op on CPU, autocast on
+    # capable CUDA). The loss is the mean next-token cross-entropy.
+    with precision_context:
+        _, loss = model(x, y)
+
+    # A nonfinite loss would poison every parameter through the gradients.
+    if not torch.isfinite(loss):
+        raise FloatingPointError(f"nonfinite loss: {loss.detach().item()}")
+
+    # Backpropagation fills .grad on every parameter that requires one.
+    loss.backward()
+
+    # Clip the *total* gradient norm to 1.0. The returned value is the norm BEFORE
+    # clipping (the trainer logs and plots it). Reject nonfinite gradients before
+    # they can reach the weights.
+    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    if not torch.isfinite(grad_norm):
+        raise FloatingPointError(f"nonfinite gradient norm: {grad_norm.detach().item()}")
+
+    # Apply the update. The caller already set the learning rate on the optimizer,
+    # so we must not change it here.
+    optimizer.step()
+
+    # Two Python floats: the pre-clip loss and the pre-clip gradient norm.
+    return float(loss.detach()), float(grad_norm)
 
 
 if __name__ == "__main__":
