@@ -87,6 +87,11 @@ sbatch assignment1/train.sbatch data/a1/final runs/a1-variant --activation gelu
 squeue -u $USER; tail -f logs/llm-student-*.out
 ```
 
+**Launched 2026-11-22** as `llm-baseline` (5836734) and `llm-variant` (5836735), `--time=12:00:00`,
+`--wandb-project llm-a1`. Both PENDING on 2080 Ti availability. Logs:
+`logs/llm-baseline-<id>.out`, `logs/llm-variant-<id>.out`. Benchmark: 0.292 s/step (A100) →
+≈6–7 h on a 2080 Ti. W&B: `forge.coreweave.com/wandb/niyimoluga85-universty-of-technology-graz/llm-a1`.
+
 ## 6. Compare + submit
 
 - [ ] `tools.py plot-runs runs/a1-baseline runs/a1-variant --out report/comparison.png`

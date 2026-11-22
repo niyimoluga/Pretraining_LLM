@@ -7,6 +7,45 @@
 - Auth: ed25519 key (`~/.ssh/gsc1`) — passwordless
 - Slurm account: **`idea_stud`**; partitions `hpc` (CPU prep) and `gpu` (training)
 
+## Benchmark (2026-11-22 23:10)
+
+GPU check passed: `GPU computation and gradients passed` on an RTX 2080 Ti with torch 2.11.0+cu128.
+
+A 100-step benchmark with the **final config** (8L/512w/ctx512/bs32, fp32) ran on
+`IT010213` (A100 40 GB, idle at the time) with W&B enabled:
+
+| Metric | Value |
+|---|---|
+| Parameters | 27,795,968 |
+| Median seconds/step | **0.2917** |
+| Projected for 30,518 steps | **≈ 2.47 h** |
+| W&B | works from compute nodes; run `bjncitqx` |
+
+2080 Ti estimate: with ~2–2.5× the A100's step time (fp32, lower memory bandwidth) the final
+run should take **≈6–7 h**, i.e. above the 6 h default and comfortably inside the new
+**12 h** limit. This is why `train.sbatch` was changed to `--time=12:00:00`.
+
+W&B project: `https://forge.coreweave.com/wandb/niyimoluga85-universty-of-technology-graz/llm-a1`
+
+## Final runs launched (2026-11-22 23:15)
+
+| Job | Name | Command extras | Output |
+|---|---|---|---|
+| 5836734 | `llm-baseline` | `data/a1/final runs/a1-baseline --wandb-project llm-a1 --wandb-name a1-baseline` | `logs/llm-baseline-5836734.out` |
+| 5836735 | `llm-variant` | same `--activation gelu --wandb-name a1-variant` | `logs/llm-variant-5836735.out` |
+
+Distinct `--job-name` values (passed on the `sbatch` command line) give distinct `%x` in
+`logs/%x-%j.out`; `%j` also makes every log filename unique, so the two runs cannot overwrite
+each other. No duplicate script was needed.
+
+**Queue status at launch: both PENDING, `StartTime=Unknown`.** All 8 RTX 2080 Ti on IT010146
+are allocated: user `18perkov` holds 7 (1–5 day limits) and `25heimig` holds 1 with ~1 h left.
+So expect: one run starts in ≈1 h, the second may wait much longer.
+
+**If the wait is unacceptable**, `IT010213` has 2 idle A100 40 GB cards and the same command
+works with `--nodelist=IT010213 --gres=gpu:a100.40gb:1`; both runs would finish in ≈2.5 h.
+That is a hardware deviation from the course default and must be recorded in the report.
+
 ## Storage layout — what lives where
 
 The wiki/setup guide is explicit:

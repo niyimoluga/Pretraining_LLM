@@ -62,6 +62,17 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.13 Final runs submitted (2026-11-22)
+- GPU check passed on RTX 2080 Ti (torch 2.11.0+cu128).
+- Benchmark (final config, 100 steps) on an idle A100 40 GB: **0.2917 s/step → ≈2.47 h**
+  for 30,518 steps; 2080 Ti estimated **≈6–7 h**, so `train.sbatch` now uses **12 h**.
+- W&B verified from a compute node (`bench-a100`, run `bjncitqx`) — monitoring link in
+  `notes/gsc1-setup.md`.
+- Submitted **llm-baseline (5836734)** and **llm-variant (5836735)**, 12 h each, distinct job
+  names → `logs/llm-{baseline,variant}-<id>.out`.
+- Both PENDING: all 8 2080 Ti are allocated (one user holds 7 for days). Contingency:
+  `IT010213` (2× idle A100 40 GB) would finish both in ≈2.5 h — a documented deviation.
+
 ### 2.12 GSC1 prepared for the final runs (2026-11-22)
 - Access resolved: username **`23moluga`**, passwordless ed25519 key in `~/.ssh/config`.
 - **Layout** (per the cluster guide): `$HOME` only for code/settings; everything heavy on
