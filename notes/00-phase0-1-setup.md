@@ -62,6 +62,7 @@ Notes for the report:
 - validation text is 15,733,430 bytes, scored 31 times per final run (~4.5M tokens each).
 - environment: the cluster guide provisions a **Python 3.12** env; this project was developed
   and tested on **Python 3.14.3** locally (Windows Application Control blocks uv's 3.12;
-  torch 2.9 ships cp314 wheels). No 3.14-only features are used, but the same source and
-  tests have **not yet been run on 3.12** — they must be re-verified on the cluster before
-  claiming parity. This difference should be noted in the report.
+  torch 2.9 ships cp314 wheels). No 3.14-only features are used. **Verified on the cluster
+  (Python 3.12.16, torch 2.11.0+cu128) on 2026-11-22: `pytest assignment1/tests -q` → 8
+  passed**, so the code and tests behave identically on both versions. See
+  `notes/gsc1-setup.md`.

@@ -62,6 +62,23 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.12 GSC1 prepared for the final runs (2026-11-22)
+- Access resolved: username **`23moluga`**, passwordless ed25519 key in `~/.ssh/config`.
+- **Layout** (per the cluster guide): `$HOME` only for code/settings; everything heavy on
+  `/cl_tmp/$USER`; `/usertmp` unused. Project root:
+  `/cl_tmp/23moluga/llm-course/llm-assignment1` (`assignment1/`, `data/a1/final`, `logs/`, `runs/`, `.venv/`).
+- Created `/cl_tmp/$USER/llm-course/{cache/{uv,huggingface,wandb},llm-assignment1}`.
+- Installed uv 0.13.9; built **Python 3.12.16** venv with torch **2.11.0+cu128**, tokenizers
+  0.22.2, huggingface_hub 1.33.0, wandb 0.31.2.
+- Copied code (254 KB) and `data/a1/final` (**1.8 GB**, ~12.5 min).
+- **Cluster test run: `pytest` → 8 passed on Python 3.12** — parity with the local 3.14.3.
+- **Weights & Biases:** logged in as `niyimoluga85`; key in `~/.bashrc` and `~/.netrc` so Slurm
+  jobs authenticate; `wandb.Api()` verified from the login node.
+- Submitted the supplied `gpu-check.sbatch`; it is **PENDING (Resources)** because all 8
+  RTX 2080 Ti on IT010146 are allocated (`AllocTRES ... gres/gpu=8`).
+- Notes: `notes/gsc1-setup.md`. Open decisions before launching the two runs: time limit
+  (6 h may be too short → benchmark first), parallel vs sequential, and the HF token.
+
 ### 2.11 Laptop training runs on the T500 (2026-11-22)
 - Ran the laptop config on the GPU: baseline (SiLU) and variant (`--activation gelu`),
   500 steps / 512k tokens each, fp32.

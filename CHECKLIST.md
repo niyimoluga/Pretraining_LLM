@@ -71,8 +71,10 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 ## 5. GSC final runs (each must end at step 30518 / 500006912 tokens)
 
-SSH login **works** (username `23moluga`, passwordless key) — see `notes/01-gsc1-ssh.md`.
-Jobs still to be launched at the full-run stage.
+Cluster is **ready** (2026-11-22): `~/.ssh` key, uv, Python 3.12 venv with torch 2.11+cu128,
+wandb logged in (`~/.netrc`), data + code on `/cl_tmp/23moluga/llm-course/llm-assignment1`.
+Suite passes on the cluster (8 passed). GPU check job submitted, waiting for a free RTX 2080 Ti.
+See `notes/gsc1-setup.md`.
 
 ```bash
 # local

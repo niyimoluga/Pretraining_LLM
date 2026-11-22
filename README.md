@@ -17,7 +17,7 @@ and compared in validation bits per byte.
 
 | Phase | State |
 |---|---|
-| Environment (uv, venv, torch/CUDA, packages) | ✅ done |
+| Environment (uv, venv, torch/CUDA, packages) | ✅ done (laptop 3.14 + torch 2.9 · cluster 3.12 + torch 2.11) |
 | Dataset download (pinned revision) | ✅ done — 1.6 GB, 541,041 documents |
 | Document split (1%, seed 0) | ✅ done — 535,601 train / 5,440 val |
 | 4096-token BPE tokenizer | ✅ done |
@@ -28,7 +28,7 @@ and compared in validation bits per byte.
 | `make_targets` (next-token shift) | ✅ TODO 4 (+ test T2) |
 | `train_step` (optimizer update) | ✅ TODO 5 (+ tests T3) |
 | Three student tests + bug demonstration | ✅ T1–T3 done (T1 with bug demo) |
-| Laptop training run, GPU baseline + variant runs | ✅ laptop baseline + laptop GELU done (T500); GPU runs pending |
+| Laptop training run, GPU baseline + variant runs | ✅ laptop baseline + laptop GELU done (T500); GPU runs: cluster ready, queued |
 | Hugging Face upload, report, GitHub push | ⬜ not started |
 
 **Prepared data (do not re-run unless you want to rebuild it):**
@@ -135,6 +135,12 @@ Peak GPU memory **213 MiB**, no `batch_size` change needed. See `notes/laptop-ru
 Loss decreases monotonically for both, and step-0 validation loss matches to four decimals
 (8.3405 vs 8.3404) — so both start from identical weights and differ only by the activation.
 Figure: `report/laptop-comparison.png`.
+
+## Next step
+
+The local work is complete through the laptop runs. The remaining tasks are on the cluster:
+two ~500M-token training runs (baseline + GELU), then package/upload to Hugging Face.
+See `notes/gsc1-setup.md` for the cluster layout and `STATUS.md` for full progress.
 
 ## Report and tests
 
