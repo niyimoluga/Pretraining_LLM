@@ -28,7 +28,7 @@ and compared in validation bits per byte.
 | `make_targets` (next-token shift) | ✅ TODO 4 (+ test T2) |
 | `train_step` (optimizer update) | ✅ TODO 5 (+ tests T3) |
 | Three student tests + bug demonstration | ✅ T1–T3 done (T1 with bug demo) |
-| Laptop training run, GPU baseline + variant runs | 🟡 laptop run next; GPU runs pending |
+| Laptop training run, GPU baseline + variant runs | ✅ laptop baseline + laptop GELU done (T500); GPU runs pending |
 | Hugging Face upload, report, GitHub push | ⬜ not started |
 
 **Prepared data (do not re-run unless you want to rebuild it):**
@@ -115,10 +115,26 @@ python assignment1/code/tools.py submission package --baseline runs/a1-baseline 
 
 ## Models
 
+**Final GPU runs (500M tokens): pending.** The table below is filled once those complete.
+
 | Model | Change | Best val bits per byte |
 |---|---|---|
-| baseline | SiLU gate (course default) | _pending_ |
-| variant | GELU gate (`--activation gelu`) | _pending_ |
+| baseline | SiLU gate (course default) | _pending (GPU run)_ |
+| variant | GELU gate (`--activation gelu`) | _pending (GPU run)_ |
+
+### Laptop development runs (T500, 4 GB) — done
+
+Laptop config: 2 layers, width 128, context 128, batch 8, 500 steps (512k tokens), fp32.
+Peak GPU memory **213 MiB**, no `batch_size` change needed. See `notes/laptop-run.md`.
+
+| Run | Activation | Final val loss | Final val bpb | Wall time |
+|---|---|---|---|---|
+| `runs/laptop-baseline` | SiLU | 6.8742 | 2.6090 | 12.2 s |
+| `runs/laptop-variant` | GELU | 6.8211 | 2.5889 | 13.4 s |
+
+Loss decreases monotonically for both, and step-0 validation loss matches to four decimals
+(8.3405 vs 8.3404) — so both start from identical weights and differ only by the activation.
+Figure: `report/laptop-comparison.png`.
 
 ## Report and tests
 

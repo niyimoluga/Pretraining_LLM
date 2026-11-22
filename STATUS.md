@@ -62,6 +62,18 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.11 Laptop training runs on the T500 (2026-11-22)
+- Ran the laptop config on the GPU: baseline (SiLU) and variant (`--activation gelu`),
+  500 steps / 512k tokens each, fp32.
+- **VRAM:** peak **213 MiB** of 4096 MiB; no `batch_size` reduction needed. bfloat16 not
+  native on Turing, so the trainer used float32 as intended.
+- **Loss falls monotonically:** baseline val bpb 3.1655 → **2.6090**, variant → **2.5889**;
+  val loss 8.3405 → 6.8742 / 6.8211. Wall 12.2 s / 13.4 s.
+- Step-0 val loss identical to 4 dp (8.3405 vs 8.3404) ⇒ identical initial weights, so the
+  only difference is the activation.
+- Plotted with the official `plot-runs` tool → `report/laptop-comparison.png` (4 panels).
+  Generation from `best.pt` runs. Full write-up: `notes/laptop-run.md`.
+
 ### 2.10 TODO 5 implemented + tests T3 + fixed-batch check (2026-11-20)
 - `train_step`: train mode → zero_grad → forward in `precision_context` → finite-loss
   check → backward → `clip_grad_norm_(..., 1.0)` returning the **pre-clip** norm →
@@ -125,7 +137,8 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ✅ done + test T2 |
 | 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ✅ done + tests T3 |
 | 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | ✅ T1–T3 + bug demo |
-| 7 | Laptop baseline run | `runs/laptop-baseline` | 🟡 next step |
+| 7 | Laptop baseline run | `runs/laptop-baseline` | ✅ done (T500, 213 MiB peak) |
+| 8 | Laptop GELU variant run | `runs/laptop-variant` | ✅ done (213 MiB peak) |
 | 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
 | 9 | HF upload + receipt | — | ❌ not started |
 | 10 | Report (≤2 pages) | `report/` | ❌ not started |

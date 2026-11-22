@@ -56,8 +56,10 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 
 - [x] `python -m pytest assignment1/tests -q` → 8 passed (3 supplied + 4 student + 1 bpe)
 - [x] overfit fixed batch (1 layer/w16/2 heads/ctx8, 100 steps) → loss 3.49 → 0.186 (notes/overfit-check.txt)
-- [ ] laptop run: `python assignment1/code/train.py --config assignment1/configs/laptop.json --data data/a1/laptop --out runs/laptop-baseline --device cpu`
-- [ ] generate text from `runs/laptop-baseline/best.pt`
+- [x] laptop run: `python assignment1/code/train.py --config assignment1/configs/laptop.json --data data/a1/laptop --out runs/laptop-baseline --device cpu` — done on **cuda (T500)**, 213 MiB peak, bpb 3.17→2.61
+- [x] laptop GELU variant run (`--activation gelu`) — done, bpb →2.589
+- [x] generate text from `runs/laptop-baseline/best.pt` — works
+- [x] comparison figure `report/laptop-comparison.png` via `tools.py plot-runs`
 - [ ] toy AdamW single-parameter trace saved in `notes/adamw-trace.txt`
 
 ## 4. Tests + bug demo
