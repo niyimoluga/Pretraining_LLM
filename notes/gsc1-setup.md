@@ -27,24 +27,39 @@ run should take **≈6–7 h**, i.e. above the 6 h default and comfortably insid
 
 W&B project: `https://forge.coreweave.com/wandb/niyimoluga85-universty-of-technology-graz/llm-a1`
 
-## Final runs launched (2026-11-22 23:15)
+## Final runs launched (2026-11-22 23:15 → relaunched on A100 00:00)
 
-| Job | Name | Command extras | Output |
-|---|---|---|---|
-| 5836734 | `llm-baseline` | `data/a1/final runs/a1-baseline --wandb-project llm-a1 --wandb-name a1-baseline` | `logs/llm-baseline-5836734.out` |
-| 5836735 | `llm-variant` | same `--activation gelu --wandb-name a1-variant` | `logs/llm-variant-5836735.out` |
+The 2080 Ti submission (`llm-baseline` 5836734 / `llm-variant` 5836735) was **cancelled**
+because all 8 cards on IT010146 were held by other users (7 for 1–5 days), so Slurm reported
+`StartTime=Unknown`. Both runs were relaunched on **IT010213 (2× A100 40 GB, idle)** and
+started immediately in parallel.
 
-Distinct `--job-name` values (passed on the `sbatch` command line) give distinct `%x` in
-`logs/%x-%j.out`; `%j` also makes every log filename unique, so the two runs cannot overwrite
-each other. No duplicate script was needed.
+| Job | Name | Node / GPU | Output | W&B run |
+|---|---|---|---|---|
+| **5836749** | `llm-baseline` | IT010213 / a100.40gb | `logs/llm-baseline-5836749.out` | `2ogs1uym` |
+| **5836750** | `llm-variant` | IT010213 / a100.40gb | `logs/llm-variant-5836750.out` | `gfp1jco6` |
 
-**Queue status at launch: both PENDING, `StartTime=Unknown`.** All 8 RTX 2080 Ti on IT010146
-are allocated: user `18perkov` holds 7 (1–5 day limits) and `25heimig` holds 1 with ~1 h left.
-So expect: one run starts in ≈1 h, the second may wait much longer.
+Both: `--time=12:00:00`, `--wandb-project llm-a1`, same data/seed/batch/schedule; the variant
+adds `--activation gelu`.
 
-**If the wait is unacceptable**, `IT010213` has 2 idle A100 40 GB cards and the same command
-works with `--nodelist=IT010213 --gres=gpu:a100.40gb:1`; both runs would finish in ≈2.5 h.
-That is a hardware deviation from the course default and must be recorded in the report.
+**Deviation to record in the report:** the runs use **A100 40 GB (IT010213)** instead of the
+course-default RTX 2080 Ti (IT010146), because the 2080 Ti queue was fully occupied. Both runs
+use the *same* hardware, same data, seed and token budget, and grading is bits-per-byte on
+held-out text (hardware-independent), so the ablation remains a clean single-variable
+comparison; only the reported wall time reflects the faster card.
+
+Measured steady state (00:06): baseline **0.304 s/step**, variant **0.305 s/step** →
+**ETA ≈2.5 h** for 30,518 steps. At step 535 both were at 8.77 M tokens with loss ≈4.9.
+
+### How to monitor
+
+- W&B project: `https://forge.coreweave.com/wandb/niyimoluga85-universty-of-technology-graz/llm-a1`
+  - baseline run: `.../llm-a1/runs/2ogs1uym`
+  - variant run: `.../llm-a1/runs/gfp1jco6`
+- Logs on the cluster:
+  `tail -f logs/llm-baseline-5836749.out logs/llm-variant-5836750.out`
+- Per-step metrics: `runs/a1-baseline/metrics.jsonl`, `runs/a1-variant/metrics.jsonl`
+- Queue: `squeue -u $USER`
 
 ## Storage layout — what lives where
 
