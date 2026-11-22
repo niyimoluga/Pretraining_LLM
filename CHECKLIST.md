@@ -49,7 +49,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 - [x] `model.py` `Attention.forward` (done 2026-11-20, test T1 + bug demo)
 - [x] `model.py` `Block.forward` (silu **and** gelu) — done 2026-11-20
 - [x] `model.py` `GPT.forward` (tied logits, `ignore_index=-100`, shape validation) — done 2026-11-20
-- [ ] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`)
+- [x] `train.py` `make_targets` (`windows[:, :-1]`, `windows[:, 1:]`) — done 2026-11-20, test T2
 - [ ] `train.py` `train_step` (zero_grad → fwd → backward → clip 1.0 → step; return pre-clip norm)
 
 ## 3. Verify
@@ -63,7 +63,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 ## 4. Tests + bug demo
 
 - [x] T1 causal mask invariance
-- [ ] T2 next-token alignment (hard-coded pair + manual CE)
+- [x] T2 next-token alignment (hard-coded pair + shift relation)
 - [ ] T3 clipping (pre-clip norm returned, update scaled) + `-100` ignored
 - [ ] bug demo: `notes/bug-demo.patch`, `notes/bug-demo-fail.txt`, `notes/bug-demo-pass.txt`, `notes/TESTS.md`
 

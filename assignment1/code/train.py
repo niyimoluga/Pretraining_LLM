@@ -10,7 +10,12 @@ def make_targets(windows):
     Return two integer tensors [B, T] on the same device, preserving the
     original token order. See assignment.md for the next-token objective.
     """
-    raise NotImplementedError("TODO 4: make_targets")
+    # Slice views, so dtype, device, memory order and gradient-relevant layout
+    # are preserved without a copy. Each row of windows has T+1 tokens; the
+    # first T are inputs and the last T are the next-token targets, i.e. the
+    # inputs shifted one position to the left. Position i therefore predicts
+    # window[i + 1]. Do not shift anywhere else — GPT.forward assumes this.
+    return windows[:, :-1], windows[:, 1:]
 
 
 def train_step(model, optimizer, x, y, precision_context):

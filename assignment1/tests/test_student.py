@@ -13,6 +13,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
 from model import Attention, Config
+from train import make_targets
 
 
 def _rope_tables(context, head_dim):
@@ -55,3 +56,37 @@ def test_attention_is_causal():
     assert torch.allclose(before[:, :4], after[:, :4], atol=1e-6)
     # The mask must not block the legitimate dependencies: later positions change.
     assert not torch.allclose(before[:, 4:], after[:, 4:], atol=1e-4)
+
+
+def test_make_targets_predicts_next_token():
+    """T2: every position predicts the FOLLOWING token.
+
+    ``make_targets`` receives [B, T+1] windows and must return [B, T] inputs and
+    [B, T] targets where position i predicts window[i + 1]. The supplied tests only
+    check shapes and dtype, so a model that predicts the *current* token (no shift)
+    or the token two ahead (double shift) would still pass them.
+
+    The check is exact: a hard-coded window with distinct values, plus the shift
+    relation targets[:, :-1] == inputs[:, 1:].
+
+    Catches: no shift (targets == inputs), a double shift, swapped inputs/targets,
+    or reversed token order.
+    Would miss: causal masking, clipping, or any optimiser behaviour.
+    """
+    windows = torch.tensor([[1, 2, 3, 4],
+                            [5, 6, 7, 8]])
+    inputs, targets = make_targets(windows)
+
+    expected_inputs = torch.tensor([[1, 2, 3],
+                                    [5, 6, 7]])
+    expected_targets = torch.tensor([[2, 3, 4],
+                                     [6, 7, 8]])
+    assert torch.equal(inputs, expected_inputs)
+    assert torch.equal(targets, expected_targets)
+
+    # Structural property: dropping the first target reproduces the remaining inputs.
+    assert torch.equal(inputs[:, 1:], targets[:, :-1])
+    # Shape, dtype and device are preserved (slices, not rebuilt tensors).
+    assert inputs.shape == targets.shape == (2, 3)
+    assert inputs.dtype == targets.dtype == windows.dtype
+    assert inputs.device == targets.device == windows.device

@@ -53,20 +53,24 @@ property breaks. Restoring `tril` makes it pass.
 
 ---
 
-## T2 — next-token alignment (to be added with TODO 4/5)
+## T2 — `test_make_targets_predicts_next_token` (implemented)
 
-**Checks.** `make_targets([B, T+1])` returns `inputs = windows[:, :-1]` and
-`targets = windows[:, 1:]`, matching a hard-coded expected pair, on the same device
-with integer dtype; and the loss from `GPT.forward(ids, targets)` equals a manually
-computed shifted cross-entropy.
+**Checks.** `make_targets([[1,2,3,4],[5,6,7,8]])` returns exactly
+`inputs = [[1,2,3],[5,6,7]]` and `targets = [[2,3,4],[6,7,8]]`; the structural shift
+relation `inputs[:, 1:] == targets[:, :-1]`; and that shape, dtype and device are
+preserved. Slice views mean these are held exactly, not approximately.
 
-**Expected result.** For `[[1,2,3,4]]`, `inputs = [[1,2,3]]`, `targets = [[2,3,4]]` —
-each position predicts the *following* token.
+**Why the expected result is what it is.** A window of `T+1` tokens is consumed as `T`
+prediction problems: the first `T` tokens are the inputs, and the token after each one
+is its target. So for `1,2,3,4` position 0 (input 1) predicts 2, position 1 predicts 3,
+position 2 predicts 4 — the targets are the inputs shifted one left.
 
-**Bug it catches.** Predicting the current token instead of the next (no shift, or a
-double shift), or swapping inputs and targets.
+**Bug it catches.** Predicting the current token (no shift: `targets == inputs`), a
+double shift (predicting two ahead), swapped inputs and targets, or reversing the token
+order inside each row. All of these are shape- and dtype-correct, so the supplied
+`test_target_shapes` does not detect them.
 
-**Would miss.** Nothing about masking or clipping.
+**Would miss.** Causal masking (T1), gradient clipping and optimiser behaviour (T3).
 
 ---
 

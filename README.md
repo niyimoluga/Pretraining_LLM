@@ -25,8 +25,9 @@ and compared in validation bits per byte.
 | `Attention.forward` | ✅ TODO 1 (+ test T1, bug demo) |
 | `Block.forward` (SiLU + GELU) | ✅ TODO 2 |
 | `GPT.forward` (tied logits, `-100` ignore, validation) | ✅ TODO 3 |
-| `make_targets`, `train_step` | ⬜ TODO 4–5 (stubs) |
-| Three student tests + bug demonstration | 🟡 T1 done (with bug demo); T2/T3 pending |
+| `make_targets` (next-token shift) | ✅ TODO 4 (+ test T2) |
+| `train_step` (optimizer update) | ⬜ TODO 5 (stub) |
+| Three student tests + bug demonstration | 🟡 T1–T2 done (T1 with bug demo); T3 pending |
 | Laptop training run, GPU baseline + variant runs | ⬜ not run (GSC1 login blocked) |
 | Hugging Face upload, report, GitHub push | ⬜ not started |
 

@@ -62,6 +62,13 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.9 TODO 4 implemented + test T2 (2026-11-20)
+- `make_targets` returns `windows[:, :-1]` and `windows[:, 1:]` as slice views, so
+  dtype/device/order are preserved and position i predicts window[i+1].
+- Test **T2** (`test_make_targets_predicts_next_token`) checks the exact expected
+  tensors plus the shift relation. Supplied suite: **5 passed, 1 failed** (only
+  `train_step` remains).
+
 ### 2.8 TODO 3 implemented (2026-11-20)
 - `GPT.forward` complete: input validation, embedding → blocks → final RMSNorm, tied
   unembedding (`x @ embedding.weight.T`), and float32 cross-entropy with
@@ -103,9 +110,9 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | 1 | `Attention.forward` (TODO 1) | `assignment1/code/model.py` | ✅ done + test T1 |
 | 2 | `Block.forward` (TODO 2, SiLU+GELU) | `assignment1/code/model.py` | ✅ done (verified) |
 | 3 | `GPT.forward` (TODO 3) | `assignment1/code/model.py` | ✅ done (verified) |
-| 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ❌ stub |
+| 4 | `make_targets` (TODO 4) | `assignment1/code/train.py` | ✅ done + test T2 |
 | 5 | `train_step` (TODO 5) | `assignment1/code/train.py` | ❌ stub |
-| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | 🟡 T1 done, T2/T3 pending |
+| 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | 🟡 T1–T2 done, T3 pending |
 | 7 | Laptop baseline run | `runs/laptop-baseline` | ❌ not run |
 | 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
 | 9 | HF upload + receipt | — | ❌ not started |
