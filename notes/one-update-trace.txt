@@ -1,0 +1,30 @@
+=== 1. tokens -> inputs/targets ===
+windows [B,T+1] : [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]
+inputs  [B,T]   : [[1, 2, 3, 4], [6, 7, 8, 9]]
+targets [B,T]   : [[2, 3, 4, 5], [7, 8, 9, 10]]   (each input predicts the NEXT token)
+
+=== 2. forward pass ===
+logits shape    : (2, 4, 32) = [B, T, vocab]
+logits[0,0,:5]  : [-0.148, 0.339, 0.035, -0.07, 0.033]
+loss            : 3.4842 (mean cross-entropy over 10 targets)
+
+=== 3. gradients: one parameter ===
+embedding.weight[3,0] value : -0.00391
+its gradient (d loss/d w)   : 0.004537
+TOTAL grad norm (pre-clip)  : 1.858
+
+=== 4. clipping ===
+clip_grad_norm_ returned    : 1.858 (this is the PRE-clip norm)
+total norm AFTER clipping   : 1.0 (<= 1.0)
+grad[3,0] after clipping    : 0.002442
+
+=== 5. optimizer step (AdamW, lr=1e-2) ===
+train_step returned loss    : 3.4842
+train_step returned grad_norm: 1.858
+embedding.weight[3,0] before: -0.003910
+embedding.weight[3,0] after : -0.013906
+change                      : -0.009996
+
+=== 6. gradient clearing (why zero_grad matters) ===
+sum|grad| after step 1: 14.8776
+sum|grad| after step 2: 14.8776  (same -> grads were cleared, not accumulated)
