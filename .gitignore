@@ -29,3 +29,9 @@ desktop.ini
 
 # credentials
 logins.txt
+
+# github credential
+github token.txt
+*token*.txt
+gsc1config.pdf
+how_to_submit.pdf
