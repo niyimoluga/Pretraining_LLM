@@ -150,5 +150,8 @@ See `notes/gsc1-setup.md` for the cluster layout and `STATUS.md` for full progre
 
 ## Report and tests
 
-- `report/` — report (at most two pages) and figures.
-- `notes/` — test explanations, the bug demonstration (failure and passing output).
+- **`report/report.pdf`** — the two-page report (source: `report/report.html`).
+- `report/comparison.png` — training loss, validation loss, validation bits per byte, gradient norm.
+- `notes/TESTS.md` — what each student test checks, the bug it catches and what it would miss.
+- `notes/bug-demo.patch`, `notes/bug-demo-fail.txt`, `notes/bug-demo-pass.txt` — the bug demonstration.
+- `notes/final-runs.md`, `notes/laptop-run.md` — full training results and checkpoint locations.

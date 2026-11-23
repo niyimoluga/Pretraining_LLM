@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignment 1 report</title>
+<style>
+  @page { size: A4; margin: 13mm 14mm 12mm 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.6pt; line-height: 1.3;
+         color: #111; margin: 0; }
+  h1 { font-size: 15pt; margin: 0 0 1mm 0; }
+  h2 { font-size: 11pt; margin: 3.2mm 0 1.2mm 0; border-bottom: 1px solid #bbb; padding-bottom: 0.6mm; }
+  h3 { font-size: 9.9pt; margin: 2.2mm 0 0.8mm 0; }
+  p { margin: 0 0 1.6mm 0; }
+  ul { margin: 0 0 1.6mm 0; padding-left: 4.6mm; }
+  li { margin: 0 0 0.5mm 0; }
+  .meta { color: #444; font-size: 9.2pt; margin: 0 0 2.4mm 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1.2mm 0 2mm 0; font-size: 9.0pt; }
+  th, td { border: 1px solid #999; padding: 0.9mm 1.4mm; text-align: left; }
+  th { background: #eef1f4; font-weight: 600; }
+  td.num, th.num { text-align: right; }
+  code { font-family: Consolas, monospace; font-size: 8.9pt; background: #f2f2f2; padding: 0 0.6mm; }
+  figure { margin: 1.6mm 0 1.4mm 0; text-align: center; }
+  figure img { width: 100%; }
+  figcaption { font-size: 8.6pt; color: #333; margin-top: 0.6mm; }
+  .two { display: flex; gap: 5mm; }
+  .two > div { flex: 1; }
+  .small { font-size: 8.8pt; color: #333; }
+</style>
+</head>
+<body>
+
+<h1>Assignment 1 — Build and Train a Small Language Model</h1>
+<p class="meta">Olaniyi Moluga · Matriculation 12340366 · Fundamentals of LLMs, University of Graz ·
+GitHub <code>niyimoluga/Pretraining_LLM</code> · Models <code>lanretto/llm-assignment1</code> (revision
+<code>fe9a0421…</code>)</p>
+
+<h2>1. Summary</h2>
+<p>I implemented a from-scratch decoder-only Transformer (causal self-attention with RoPE, pre-norm
+blocks, tied embeddings, gated feed-forward) and pre-trained two ~27.8M-parameter models for
+500,006,912 tokens each: a <strong>SiLU baseline</strong> and a <strong>GELU variant</strong> that
+changes exactly one feature. Best validation <strong>bits per byte</strong>: baseline
+<strong>1.3453</strong>, variant <strong>1.3509</strong> — a near-neutral ablation.</p>
+
+<h2>2. Data, split and tokenizer</h2>
+<p>Corpus: <code>idealab-cs2/fundamentals-of-llms-training-data</code> (English FineWeb subset, revision
+<code>9624da98…</code>), 541,041 documents.</p>
+<ul>
+  <li><strong>Split:</strong> whole documents, <strong>validation fraction 0.01</strong>,
+      <strong>seed 0</strong> → <strong>535,601 train / 5,440 validation</strong> documents, disjoint
+      (535,601 + 5,440 = 541,041).</li>
+  <li><strong>Tokenizer:</strong> one byte-level BPE, vocabulary <strong>4,096</strong>, trained on a
+      33.5 MiB sample of the training split, <code>&lt;|endoftext|&gt;</code> id 0; shared by every run.</li>
+  <li><strong>Encoded tokens:</strong> 456,968,855 train / 4,507,188 validation; mean 4.448 UTF-8 bytes per token.</li>
+</ul>
+<p><strong>Choice of validation size.</strong> 1 % gives about 5,000 documents (~3 M tokens), which is
+comfortably enough to resolve bits-per-byte differences of a few thousandths between two similar
+models, while keeping each of the 31 validations cheap; a larger split would slow every run without
+changing the conclusion, so I kept the course default for comparability.</p>
+
+<h2>3. Model</h2>
+<div class="two">
+<div>
+<ul>
+  <li>8 layers, width 512, 8 heads (head width 64), context 512</li>
+  <li>RoPE on Q and K only; RMSNorm pre-norm on both sublayers</li>
+  <li>Gated FFN (SwiGLU-style), hidden width 1,408</li>
+</ul>
+</div>
+<div>
+<ul>
+  <li>Output projection <strong>tied</strong> to the token embedding</li>
+  <li>Vocabulary 4,096 · parameters <strong>27,795,968</strong></li>
+  <li>Baseline activation <strong>SiLU</strong>; variant <strong>GELU</strong></li>
+</ul>
+</div>
+</div>
+
+<h2>4. Training</h2>
+<p>AdamW (β = 0.9, 0.95), weight decay 0.1 on 2-D parameters, peak learning rate 1e-3 with a
+500-step warmup and cosine decay to 10 %, batch 32 × 512 = 16,384 tokens per step, 30,518 steps =
+<strong>500,006,912 tokens</strong> (1.09 passes over the training split), float32, gradient-norm clipping
+at 1.0, seed 0. Every setting, the data, tokenizer and schedule are identical for both runs; only the
+activation differs, and the identical step-0 validation loss (8.4175 vs 8.4181) confirms both start
+from the same initial weights.</p>
+<p class="small"><strong>Recorded deviation:</strong> the course default is one RTX 2080 Ti on IT010146.
+All eight cards there were allocated by other users, so both runs used one
+<strong>A100-PCIE-40GB</strong> (IT010213) each, in parallel — the same hardware and settings for both
+models. <code>train.sbatch</code> was also changed from <code>--time=06:00:00</code> to
+<code>--time=12:00:00</code>. Grading is bits per byte, which is hardware-independent.</p>
+
+<h2>5. Results</h2>
+<table>
+  <tr><th>Model</th><th class="num">Vocab</th><th class="num">Parameters</th><th class="num">Trained tokens</th>
+      <th class="num">Best val bpb</th><th class="num">Runtime</th><th>Device</th></tr>
+  <tr><td>baseline (SiLU)</td><td class="num">4,096</td><td class="num">27,795,968</td>
+      <td class="num">500,006,912</td><td class="num">1.3453</td><td class="num">3.18 h</td>
+      <td>A100-PCIE-40GB, fp32</td></tr>
+  <tr><td>variant (GELU)</td><td class="num">4,096</td><td class="num">27,795,968</td>
+      <td class="num">500,006,912</td><td class="num">1.3509</td><td class="num">3.17 h</td>
+      <td>A100-PCIE-40GB, fp32</td></tr>
+</table>
+<figure>
+  <img src="comparison.png" alt="training loss, validation loss, validation bits per byte and gradient norm for both runs">
+  <figcaption>Training loss, validation loss, validation bits per byte and pre-clip gradient norm.
+  The two runs are essentially coincident; gradient norms exceed 1.0 only in the first few hundred steps.</figcaption>
+</figure>
+
+<h2>6. Ablation: expected effect, results, conclusion</h2>
+<p><strong>Expected effect (recorded before running).</strong> SiLU and GELU are both smooth, ReLU-family
+shapes, and in a gated feed-forward layer the gate's exact shape has little influence on capacity;
+I therefore expected <em>almost no change</em> in bits per byte, with identical parameter count and
+compute.</p>
+<p><strong>Results.</strong> Baseline 1.3453 vs variant 1.3509 bpb — GELU is <strong>+0.0056 bpb
+(+0.42 %)</strong>. The curves differ by no more than a few thousandths at every checkpoint, and the
+gap does not widen over training. Validation loss fell from 8.42 to 3.26 (bpb 3.48 → 1.35), well
+below the ≈2.70 bpb of a uniform guess over the vocabulary.</p>
+<p><strong>Conclusion.</strong> Swapping the activation is effectively neutral at this scale: the
+variant is marginally worse, but the difference is within run-to-run noise, so no real effect can be
+claimed. Parameter count and compute are unchanged, and with ~1.09 passes over the data overfitting is
+not a confounder. The experiment supports the expectation that in a gated FFN the choice between SiLU
+and GELU matters little.</p>
+
+<h2>7. Tests and bug demonstration</h2>
+<p>Three tests in <code>tests/test_student.py</code>: <strong>T1</strong> causal masking (changing future
+tokens must not change earlier outputs), <strong>T2</strong> next-token alignment (exact shifted
+inputs/targets), and <strong>T3</strong> one optimizer update (the <em>pre-clip</em> gradient norm is
+returned, gradients are cleared between steps, and <code>-100</code> targets are ignored). Explanations,
+including what each test would miss, are in <code>notes/TESTS.md</code>.</p>
+<p><strong>Bug demonstration.</strong> Patch <code>notes/bug-demo.patch</code> flips the attention mask from
+<code>tril</code> to <code>triu</code>; T1 then fails (<code>notes/bug-demo-fail.txt</code>) because earlier
+positions can see the future, and reverting makes it pass (<code>notes/bug-demo-pass.txt</code>).
+Separately, the supplied end-to-end test caught a real bug: <code>GPT.forward</code> used
+<code>view(-1)</code> on the targets, which are non-contiguous slices returned by
+<code>make_targets</code>; <code>reshape(-1)</code> fixed it. Full suite: <strong>8 passed</strong>.</p>
+
+<h2>8. Coding-agent use and sources</h2>
+<p>I used a coding agent (pi, running locally and over SSH to the cluster) to scaffold the project,
+manage environments, keep documentation, run the training jobs and help draft this report. All
+implementation decisions were reviewed and verified independently: the vectorised attention was
+checked against a naive per-position loop, the loss against a manual cross-entropy, and the optimizer
+step against a toy model with a known gradient norm. Sources: the course notes and assignment
+specification, Karpathy's nanoGPT, the Stanford CS336 component-based approach, and the PyTorch
+documentation.</p>
+
+</body>
+</html>
