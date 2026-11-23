@@ -62,6 +62,15 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
   **passwordless login works** (`whoami` = `23moluga`, node `IT010128`).
 - Slurm account **`idea_stud`** confirmed present; `/cl_tmp` has 7.8 TB free.
 
+### 2.14 Final runs COMPLETED (2026-11-23)
+- Both A100 jobs finished successfully: `llm-baseline` 5836749 and `llm-variant` 5836750,
+  each 30,518 steps / 500,006,912 tokens, fp32, 3.2 h, exit `0:0`.
+- **Best validation bits per byte: baseline 1.3453 (SiLU) vs 1.3509 (GELU)** — GELU +0.42 %,
+  a near-null ablation; step-0 losses identical to 4 dp (3.4789 vs 3.4791).
+- Official `plot-runs` → `report/comparison.png`; full tables in `notes/final-runs.md`.
+- Models on the cluster: `runs/a1-{baseline,variant}/{best,last}.pt` (107 MB each).
+- Remaining: `submission package/upload/check` on HF (`lanretto/llm-assignment1`), report, GitHub push.
+
 ### 2.13 Final runs RUNNING on A100 (2026-11-22/23)
 - GPU check passed on RTX 2080 Ti; benchmark 0.292 s/step (A100) → ≈2.5 h for 30,518 steps.
 - 2080 Ti queue unusable (one user holds 7 cards for 1–5 days), so the two 2080 Ti jobs were
@@ -167,7 +176,7 @@ implemented**; no training runs yet; GSC1 login **blocked** on credentials.
 | 6 | Three student tests + bug demo | `assignment1/tests/test_student.py`, `notes/` | ✅ T1–T3 + bug demo |
 | 7 | Laptop baseline run | `runs/laptop-baseline` | ✅ done (T500, 213 MiB peak) |
 | 8 | Laptop GELU variant run | `runs/laptop-variant` | ✅ done (213 MiB peak) |
-| 8 | Final baseline + variant runs (GPU) | GSC1 | ❌ blocked |
+| 8 | Final baseline + variant runs (GPU) | GSC1 | ✅ COMPLETED (bpb 1.3453 / 1.3509) |
 | 9 | HF upload + receipt | — | ❌ not started |
 | 10 | Report (≤2 pages) | `report/` | ❌ not started |
 | 11 | GitHub push | `niyimoluga/llm-assignment1` | ❌ no remote |

@@ -115,12 +115,15 @@ python assignment1/code/tools.py submission package --baseline runs/a1-baseline 
 
 ## Models
 
-**Final GPU runs (500M tokens): pending.** The table below is filled once those complete.
+**Final GPU runs (500M tokens): complete.** A100-PCIE-40GB (IT010213), fp32, 30,518 steps each.
+See `notes/final-runs.md` and `report/comparison.png`.
 
-| Model | Change | Best val bits per byte |
-|---|---|---|
-| baseline | SiLU gate (course default) | _pending (GPU run)_ |
-| variant | GELU gate (`--activation gelu`) | _pending (GPU run)_ |
+| Model | Change | Params | Trained tokens | Best val bits per byte | Runtime |
+|---|---|---|---|---|---|
+| baseline | SiLU gate (course default) | 27,795,968 | 500,006,912 | **1.3453** | 3.18 h |
+| variant | GELU gate (`--activation gelu`) | 27,795,968 | 500,006,912 | **1.3509** | 3.17 h |
+
+GELU is +0.0056 bpb (+0.42 %) — a near-null ablation, as expected for a smooth-activation swap.
 
 ### Laptop development runs (T500, 4 GB) — done
 

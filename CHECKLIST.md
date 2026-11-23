@@ -69,7 +69,7 @@ rm -rf data/a1/.a1-prepare-*        # Windows cleanup bug in the helper leaves s
 - [x] T3 clipping (pre-clip norm returned, update scaled) + `-100` ignored
 - [ ] bug demo: `notes/bug-demo.patch`, `notes/bug-demo-fail.txt`, `notes/bug-demo-pass.txt`, `notes/TESTS.md`
 
-## 5. GSC final runs (each must end at step 30518 / 500006912 tokens)
+## 5. GSC final runs — ✅ DONE 2026-11-23 (both ended at step 30518 / 500006912, bpb 1.3453 / 1.3509)
 
 Cluster is **ready** (2026-11-22): `~/.ssh` key, uv, Python 3.12 venv with torch 2.11+cu128,
 wandb logged in (`~/.netrc`), data + code on `/cl_tmp/23moluga/llm-course/llm-assignment1`.
