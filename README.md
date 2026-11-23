@@ -8,10 +8,13 @@ Assignment 1: a small decoder-only GPT (28M parameters, 4096-token BPE vocabular
 pre-trained on ~500M tokens twice — a **SiLU baseline** and a **GELU variant** —
 and compared in validation bits per byte.
 
-> Status: **environment, data split, tokenizer and token files are complete; the five
-> implementation TODOs, the student tests and all training runs are still pending.**
-> Detailed progress report: [`STATUS.md`](STATUS.md). Models will be published at
-> `lanretto/llm-assignment1` on Hugging Face (link + full revision ID go here once uploaded).
+> Status: **complete.** All five TODOs implemented, three student tests written, both
+> 500M-token runs finished and uploaded. Detailed progress report: [`STATUS.md`](STATUS.md).
+>
+> **Models:** Hugging Face [`lanretto/llm-assignment1`](https://huggingface.co/lanretto/llm-assignment1)
+> — revision **`fe9a042125f5c5a04ae46e32708a4b34496a02dd`**
+> ([commit](https://huggingface.co/lanretto/llm-assignment1/commit/fe9a042125f5c5a04ae46e32708a4b34496a02dd)).
+> Upload receipt: [`a1-receipt.json`](a1-receipt.json).
 
 ## Current status at a glance
 
